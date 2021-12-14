@@ -1,0 +1,3046 @@
+#![feature(prelude_import)]
+#[prelude_import]
+use std::prelude::rust_2018::*;
+#[macro_use]
+extern crate std;
+pub use pallet::*;
+///
+///         The module that hosts all the
+///         [FRAME](https://substrate.dev/docs/en/knowledgebase/runtime/frame)
+///         types needed to add this pallet to a
+///         [runtime](https://substrate.dev/docs/en/knowledgebase/runtime/).
+///
+pub mod pallet {
+    use frame_support::pallet_prelude::*;
+    use frame_system::pallet_prelude::*;
+    use frame_support::{
+        sp_runtime::traits::Hash,
+        traits::{Randomness, Currency, tokens::ExistenceRequirement},
+        transactional,
+    };
+    use sp_io::hashing::blake2_128;
+    use scale_info::TypeInfo;
+    #[cfg(feature = "std")]
+    use frame_support::serde::{Deserialize, Serialize};
+    type AccountOf<T> = <T as frame_system::Config>::AccountId;
+    type BalanceOf<T> =
+        <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+    #[scale_info(skip_type_params(T))]
+    pub struct Kitty<T: Config> {
+        pub dna: [u8; 16],
+        pub price: Option<BalanceOf<T>>,
+        pub gender: Gender,
+        pub owner: AccountOf<T>,
+    }
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl<T: ::core::clone::Clone + Config> ::core::clone::Clone for Kitty<T> {
+        #[inline]
+        fn clone(&self) -> Kitty<T> {
+            match *self {
+                Kitty {
+                    dna: ref __self_0_0,
+                    price: ref __self_0_1,
+                    gender: ref __self_0_2,
+                    owner: ref __self_0_3,
+                } => Kitty {
+                    dna: ::core::clone::Clone::clone(&(*__self_0_0)),
+                    price: ::core::clone::Clone::clone(&(*__self_0_1)),
+                    gender: ::core::clone::Clone::clone(&(*__self_0_2)),
+                    owner: ::core::clone::Clone::clone(&(*__self_0_3)),
+                },
+            }
+        }
+    }
+    const _: () = {
+        impl<T: Config> ::codec::Encode for Kitty<T>
+        where
+            Option<BalanceOf<T>>: ::codec::Encode,
+            Option<BalanceOf<T>>: ::codec::Encode,
+            AccountOf<T>: ::codec::Encode,
+            AccountOf<T>: ::codec::Encode,
+        {
+            fn encode_to<__CodecOutputEdqy: ::codec::Output + ?::core::marker::Sized>(
+                &self,
+                __codec_dest_edqy: &mut __CodecOutputEdqy,
+            ) {
+                ::codec::Encode::encode_to(&self.dna, __codec_dest_edqy);
+                ::codec::Encode::encode_to(&self.price, __codec_dest_edqy);
+                ::codec::Encode::encode_to(&self.gender, __codec_dest_edqy);
+                ::codec::Encode::encode_to(&self.owner, __codec_dest_edqy);
+            }
+        }
+        impl<T: Config> ::codec::EncodeLike for Kitty<T>
+        where
+            Option<BalanceOf<T>>: ::codec::Encode,
+            Option<BalanceOf<T>>: ::codec::Encode,
+            AccountOf<T>: ::codec::Encode,
+            AccountOf<T>: ::codec::Encode,
+        {
+        }
+    };
+    const _: () = {
+        impl<T: Config> ::codec::Decode for Kitty<T>
+        where
+            Option<BalanceOf<T>>: ::codec::Decode,
+            Option<BalanceOf<T>>: ::codec::Decode,
+            AccountOf<T>: ::codec::Decode,
+            AccountOf<T>: ::codec::Decode,
+        {
+            fn decode<__CodecInputEdqy: ::codec::Input>(
+                __codec_input_edqy: &mut __CodecInputEdqy,
+            ) -> ::core::result::Result<Self, ::codec::Error> {
+                ::core::result::Result::Ok(Kitty::<T> {
+                    dna: {
+                        let __codec_res_edqy =
+                            <[u8; 16] as ::codec::Decode>::decode(__codec_input_edqy);
+                        match __codec_res_edqy {
+                            ::core::result::Result::Err(e) => {
+                                return ::core::result::Result::Err(
+                                    e.chain("Could not decode `Kitty::dna`"),
+                                )
+                            }
+                            ::core::result::Result::Ok(__codec_res_edqy) => __codec_res_edqy,
+                        }
+                    },
+                    price: {
+                        let __codec_res_edqy =
+                            <Option<BalanceOf<T>> as ::codec::Decode>::decode(__codec_input_edqy);
+                        match __codec_res_edqy {
+                            ::core::result::Result::Err(e) => {
+                                return ::core::result::Result::Err(
+                                    e.chain("Could not decode `Kitty::price`"),
+                                )
+                            }
+                            ::core::result::Result::Ok(__codec_res_edqy) => __codec_res_edqy,
+                        }
+                    },
+                    gender: {
+                        let __codec_res_edqy =
+                            <Gender as ::codec::Decode>::decode(__codec_input_edqy);
+                        match __codec_res_edqy {
+                            ::core::result::Result::Err(e) => {
+                                return ::core::result::Result::Err(
+                                    e.chain("Could not decode `Kitty::gender`"),
+                                )
+                            }
+                            ::core::result::Result::Ok(__codec_res_edqy) => __codec_res_edqy,
+                        }
+                    },
+                    owner: {
+                        let __codec_res_edqy =
+                            <AccountOf<T> as ::codec::Decode>::decode(__codec_input_edqy);
+                        match __codec_res_edqy {
+                            ::core::result::Result::Err(e) => {
+                                return ::core::result::Result::Err(
+                                    e.chain("Could not decode `Kitty::owner`"),
+                                )
+                            }
+                            ::core::result::Result::Ok(__codec_res_edqy) => __codec_res_edqy,
+                        }
+                    },
+                })
+            }
+        }
+    };
+    impl<T: Config> ::core::marker::StructuralPartialEq for Kitty<T> {}
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl<T: ::core::cmp::PartialEq + Config> ::core::cmp::PartialEq for Kitty<T> {
+        #[inline]
+        fn eq(&self, other: &Kitty<T>) -> bool {
+            match *other {
+                Kitty {
+                    dna: ref __self_1_0,
+                    price: ref __self_1_1,
+                    gender: ref __self_1_2,
+                    owner: ref __self_1_3,
+                } => match *self {
+                    Kitty {
+                        dna: ref __self_0_0,
+                        price: ref __self_0_1,
+                        gender: ref __self_0_2,
+                        owner: ref __self_0_3,
+                    } => {
+                        (*__self_0_0) == (*__self_1_0)
+                            && (*__self_0_1) == (*__self_1_1)
+                            && (*__self_0_2) == (*__self_1_2)
+                            && (*__self_0_3) == (*__self_1_3)
+                    }
+                },
+            }
+        }
+        #[inline]
+        fn ne(&self, other: &Kitty<T>) -> bool {
+            match *other {
+                Kitty {
+                    dna: ref __self_1_0,
+                    price: ref __self_1_1,
+                    gender: ref __self_1_2,
+                    owner: ref __self_1_3,
+                } => match *self {
+                    Kitty {
+                        dna: ref __self_0_0,
+                        price: ref __self_0_1,
+                        gender: ref __self_0_2,
+                        owner: ref __self_0_3,
+                    } => {
+                        (*__self_0_0) != (*__self_1_0)
+                            || (*__self_0_1) != (*__self_1_1)
+                            || (*__self_0_2) != (*__self_1_2)
+                            || (*__self_0_3) != (*__self_1_3)
+                    }
+                },
+            }
+        }
+    }
+    impl<T: Config> core::fmt::Debug for Kitty<T>
+    where
+        T: core::fmt::Debug,
+    {
+        fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::fmt::Result {
+            fmt.debug_struct("Kitty")
+                .field("dna", &self.dna)
+                .field("price", &self.price)
+                .field("gender", &self.gender)
+                .field("owner", &self.owner)
+                .finish()
+        }
+    }
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _: () = {
+        impl<T: Config> ::scale_info::TypeInfo for Kitty<T>
+        where
+            Option<BalanceOf<T>>: ::scale_info::TypeInfo + 'static,
+            AccountOf<T>: ::scale_info::TypeInfo + 'static,
+            T: Config + 'static,
+        {
+            type Identity = Self;
+            fn type_info() -> ::scale_info::Type {
+                ::scale_info::Type::builder()
+                    .path(::scale_info::Path::new("Kitty", "pallet_kitties::pallet"))
+                    .type_params(<[_]>::into_vec(box [::scale_info::TypeParameter::new(
+                        "T",
+                        ::core::option::Option::None,
+                    )]))
+                    .docs(&[])
+                    .composite(
+                        ::scale_info::build::Fields::named()
+                            .field(|f| {
+                                f.ty::<[u8; 16]>()
+                                    .name("dna")
+                                    .type_name("[u8; 16]")
+                                    .docs(&[])
+                            })
+                            .field(|f| {
+                                f.ty::<Option<BalanceOf<T>>>()
+                                    .name("price")
+                                    .type_name("Option<BalanceOf<T>>")
+                                    .docs(&[])
+                            })
+                            .field(|f| {
+                                f.ty::<Gender>()
+                                    .name("gender")
+                                    .type_name("Gender")
+                                    .docs(&[])
+                            })
+                            .field(|f| {
+                                f.ty::<AccountOf<T>>()
+                                    .name("owner")
+                                    .type_name("AccountOf<T>")
+                                    .docs(&[])
+                            }),
+                    )
+            }
+        };
+    };
+    #[scale_info(skip_type_params(T))]
+    pub enum Gender {
+        Male,
+        Female,
+    }
+    #[doc(hidden)]
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _: () = {
+        #[allow(unused_extern_crates, clippy::useless_attribute)]
+        extern crate serde as _serde;
+        #[automatically_derived]
+        impl _serde::Serialize for Gender {
+            fn serialize<__S>(
+                &self,
+                __serializer: __S,
+            ) -> _serde::__private::Result<__S::Ok, __S::Error>
+            where
+                __S: _serde::Serializer,
+            {
+                match *self {
+                    Gender::Male => _serde::Serializer::serialize_unit_variant(
+                        __serializer,
+                        "Gender",
+                        0u32,
+                        "Male",
+                    ),
+                    Gender::Female => _serde::Serializer::serialize_unit_variant(
+                        __serializer,
+                        "Gender",
+                        1u32,
+                        "Female",
+                    ),
+                }
+            }
+        }
+    };
+    #[doc(hidden)]
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _: () = {
+        #[allow(unused_extern_crates, clippy::useless_attribute)]
+        extern crate serde as _serde;
+        #[automatically_derived]
+        impl<'de> _serde::Deserialize<'de> for Gender {
+            fn deserialize<__D>(__deserializer: __D) -> _serde::__private::Result<Self, __D::Error>
+            where
+                __D: _serde::Deserializer<'de>,
+            {
+                #[allow(non_camel_case_types)]
+                enum __Field {
+                    __field0,
+                    __field1,
+                }
+                struct __FieldVisitor;
+                impl<'de> _serde::de::Visitor<'de> for __FieldVisitor {
+                    type Value = __Field;
+                    fn expecting(
+                        &self,
+                        __formatter: &mut _serde::__private::Formatter,
+                    ) -> _serde::__private::fmt::Result {
+                        _serde::__private::Formatter::write_str(__formatter, "variant identifier")
+                    }
+                    fn visit_u64<__E>(
+                        self,
+                        __value: u64,
+                    ) -> _serde::__private::Result<Self::Value, __E>
+                    where
+                        __E: _serde::de::Error,
+                    {
+                        match __value {
+                            0u64 => _serde::__private::Ok(__Field::__field0),
+                            1u64 => _serde::__private::Ok(__Field::__field1),
+                            _ => _serde::__private::Err(_serde::de::Error::invalid_value(
+                                _serde::de::Unexpected::Unsigned(__value),
+                                &"variant index 0 <= i < 2",
+                            )),
+                        }
+                    }
+                    fn visit_str<__E>(
+                        self,
+                        __value: &str,
+                    ) -> _serde::__private::Result<Self::Value, __E>
+                    where
+                        __E: _serde::de::Error,
+                    {
+                        match __value {
+                            "Male" => _serde::__private::Ok(__Field::__field0),
+                            "Female" => _serde::__private::Ok(__Field::__field1),
+                            _ => _serde::__private::Err(_serde::de::Error::unknown_variant(
+                                __value, VARIANTS,
+                            )),
+                        }
+                    }
+                    fn visit_bytes<__E>(
+                        self,
+                        __value: &[u8],
+                    ) -> _serde::__private::Result<Self::Value, __E>
+                    where
+                        __E: _serde::de::Error,
+                    {
+                        match __value {
+                            b"Male" => _serde::__private::Ok(__Field::__field0),
+                            b"Female" => _serde::__private::Ok(__Field::__field1),
+                            _ => {
+                                let __value = &_serde::__private::from_utf8_lossy(__value);
+                                _serde::__private::Err(_serde::de::Error::unknown_variant(
+                                    __value, VARIANTS,
+                                ))
+                            }
+                        }
+                    }
+                }
+                impl<'de> _serde::Deserialize<'de> for __Field {
+                    #[inline]
+                    fn deserialize<__D>(
+                        __deserializer: __D,
+                    ) -> _serde::__private::Result<Self, __D::Error>
+                    where
+                        __D: _serde::Deserializer<'de>,
+                    {
+                        _serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
+                    }
+                }
+                struct __Visitor<'de> {
+                    marker: _serde::__private::PhantomData<Gender>,
+                    lifetime: _serde::__private::PhantomData<&'de ()>,
+                }
+                impl<'de> _serde::de::Visitor<'de> for __Visitor<'de> {
+                    type Value = Gender;
+                    fn expecting(
+                        &self,
+                        __formatter: &mut _serde::__private::Formatter,
+                    ) -> _serde::__private::fmt::Result {
+                        _serde::__private::Formatter::write_str(__formatter, "enum Gender")
+                    }
+                    fn visit_enum<__A>(
+                        self,
+                        __data: __A,
+                    ) -> _serde::__private::Result<Self::Value, __A::Error>
+                    where
+                        __A: _serde::de::EnumAccess<'de>,
+                    {
+                        match match _serde::de::EnumAccess::variant(__data) {
+                            _serde::__private::Ok(__val) => __val,
+                            _serde::__private::Err(__err) => {
+                                return _serde::__private::Err(__err);
+                            }
+                        } {
+                            (__Field::__field0, __variant) => {
+                                match _serde::de::VariantAccess::unit_variant(__variant) {
+                                    _serde::__private::Ok(__val) => __val,
+                                    _serde::__private::Err(__err) => {
+                                        return _serde::__private::Err(__err);
+                                    }
+                                };
+                                _serde::__private::Ok(Gender::Male)
+                            }
+                            (__Field::__field1, __variant) => {
+                                match _serde::de::VariantAccess::unit_variant(__variant) {
+                                    _serde::__private::Ok(__val) => __val,
+                                    _serde::__private::Err(__err) => {
+                                        return _serde::__private::Err(__err);
+                                    }
+                                };
+                                _serde::__private::Ok(Gender::Female)
+                            }
+                        }
+                    }
+                }
+                const VARIANTS: &'static [&'static str] = &["Male", "Female"];
+                _serde::Deserializer::deserialize_enum(
+                    __deserializer,
+                    "Gender",
+                    VARIANTS,
+                    __Visitor {
+                        marker: _serde::__private::PhantomData::<Gender>,
+                        lifetime: _serde::__private::PhantomData,
+                    },
+                )
+            }
+        }
+    };
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl ::core::clone::Clone for Gender {
+        #[inline]
+        fn clone(&self) -> Gender {
+            match (&*self,) {
+                (&Gender::Male,) => Gender::Male,
+                (&Gender::Female,) => Gender::Female,
+            }
+        }
+    }
+    const _: () = {
+        impl ::codec::Encode for Gender {
+            fn encode_to<__CodecOutputEdqy: ::codec::Output + ?::core::marker::Sized>(
+                &self,
+                __codec_dest_edqy: &mut __CodecOutputEdqy,
+            ) {
+                match *self {
+                    Gender::Male => {
+                        __codec_dest_edqy.push_byte(0usize as ::core::primitive::u8);
+                    }
+                    Gender::Female => {
+                        __codec_dest_edqy.push_byte(1usize as ::core::primitive::u8);
+                    }
+                    _ => (),
+                }
+            }
+        }
+        impl ::codec::EncodeLike for Gender {}
+    };
+    const _: () = {
+        impl ::codec::Decode for Gender {
+            fn decode<__CodecInputEdqy: ::codec::Input>(
+                __codec_input_edqy: &mut __CodecInputEdqy,
+            ) -> ::core::result::Result<Self, ::codec::Error> {
+                match __codec_input_edqy.read_byte().map_err(|e| {
+                    e.chain("Could not decode `Gender`, failed to read variant byte")
+                })? {
+                    __codec_x_edqy if __codec_x_edqy == 0usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Gender::Male)
+                    }
+                    __codec_x_edqy if __codec_x_edqy == 1usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Gender::Female)
+                    }
+                    _ => ::core::result::Result::Err(<_ as ::core::convert::Into<_>>::into(
+                        "Could not decode `Gender`, variant doesn\'t exist",
+                    )),
+                }
+            }
+        }
+    };
+    impl ::core::marker::StructuralPartialEq for Gender {}
+    #[automatically_derived]
+    #[allow(unused_qualifications)]
+    impl ::core::cmp::PartialEq for Gender {
+        #[inline]
+        fn eq(&self, other: &Gender) -> bool {
+            {
+                let __self_vi = ::core::intrinsics::discriminant_value(&*self);
+                let __arg_1_vi = ::core::intrinsics::discriminant_value(&*other);
+                if true && __self_vi == __arg_1_vi {
+                    match (&*self, &*other) {
+                        _ => true,
+                    }
+                } else {
+                    false
+                }
+            }
+        }
+    }
+    impl core::fmt::Debug for Gender {
+        fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::fmt::Result {
+            match self {
+                Self::Male => fmt.debug_tuple("Gender::Male").finish(),
+                Self::Female => fmt.debug_tuple("Gender::Female").finish(),
+                _ => Ok(()),
+            }
+        }
+    }
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _: () = {
+        impl ::scale_info::TypeInfo for Gender {
+            type Identity = Self;
+            fn type_info() -> ::scale_info::Type {
+                ::scale_info::Type::builder()
+                    .path(::scale_info::Path::new("Gender", "pallet_kitties::pallet"))
+                    .type_params(::alloc::vec::Vec::new())
+                    .docs(&[])
+                    .variant(
+                        ::scale_info::build::Variants::new()
+                            .variant("Male", |v| {
+                                v.index(0usize as ::core::primitive::u8).docs(&[])
+                            })
+                            .variant("Female", |v| {
+                                v.index(1usize as ::core::primitive::u8).docs(&[])
+                            }),
+                    )
+            }
+        };
+    };
+    ///
+    ///         The [pallet](https://substrate.dev/docs/en/knowledgebase/runtime/pallets) implementing
+    ///         the on-chain logic.
+    ///
+    pub struct Pallet<T>(frame_support::sp_std::marker::PhantomData<(T)>);
+    const _: () = {
+        impl<T> core::clone::Clone for Pallet<T> {
+            fn clone(&self) -> Self {
+                Self(core::clone::Clone::clone(&self.0))
+            }
+        }
+    };
+    const _: () = {
+        impl<T> core::cmp::Eq for Pallet<T> {}
+    };
+    const _: () = {
+        impl<T> core::cmp::PartialEq for Pallet<T> {
+            fn eq(&self, other: &Self) -> bool {
+                true && self.0 == other.0
+            }
+        }
+    };
+    const _: () = {
+        impl<T> core::fmt::Debug for Pallet<T> {
+            fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::fmt::Result {
+                fmt.debug_tuple("Pallet").field(&self.0).finish()
+            }
+        }
+    };
+    ///
+    ///         Configuration trait of this pallet.
+    ///
+    ///         Implement this type for a runtime in order to customize this pallet.
+    ///
+    pub trait Config: frame_system::Config {
+        /// Because this pallet emits events, it depends on the runtime's definition of an event.
+        type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+        /// The Currency handler for the Kitties pallet.
+        type Currency: Currency<Self::AccountId>;
+        /// The maximum amount of Kitties a single account can own.
+        type MaxKittyOwned: Get<u32>;
+        /// The type of Randomness we want to specify for this pallet.
+        type KittyRandomness: Randomness<Self::Hash, Self::BlockNumber>;
+    }
+    #[scale_info(skip_type_params(T), capture_docs = "always")]
+    ///
+    ///         Custom [dispatch errors](https://substrate.dev/docs/en/knowledgebase/runtime/errors)
+    ///         of this pallet.
+    ///
+    pub enum Error<T> {
+        #[doc(hidden)]
+        #[codec(skip)]
+        __Ignore(
+            frame_support::sp_std::marker::PhantomData<(T)>,
+            frame_support::Never,
+        ),
+        /// Handles arithemtic overflow when incrementing the Kitty counter.
+        KittyCntOverflow,
+        /// An account cannot own more Kitties than `MaxKittyCount`.
+        ExceedMaxKittyOwned,
+        /// Buyer cannot be the owner.
+        BuyerIsKittyOwner,
+        /// Cannot transfer a kitty to its owner.
+        TransferToSelf,
+        /// Handles checking whether the Kitty exists.
+        KittyNotExist,
+        /// Handles checking that the Kitty is owned by the account transferring, buying or setting a price for it.
+        NotKittyOwner,
+        /// Ensures the Kitty is for sale.
+        KittyNotForSale,
+        /// Ensures that the buying price is greater than the asking price.
+        KittyBidPriceTooLow,
+        /// Ensures that an account has enough funds to purchase a Kitty.
+        NotEnoughBalance,
+    }
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _: () = {
+        impl<T> ::scale_info::TypeInfo for Error<T>
+        where
+            frame_support::sp_std::marker::PhantomData<(T)>: ::scale_info::TypeInfo + 'static,
+            T: 'static,
+        {
+            type Identity = Self;
+            fn type_info() -> ::scale_info::Type {
+                :: scale_info :: Type :: builder () . path (:: scale_info :: Path :: new ("Error" , "pallet_kitties::pallet")) . type_params (< [_] > :: into_vec (box [:: scale_info :: TypeParameter :: new ("T" , :: core :: option :: Option :: None)])) . docs_always (& ["\n\t\t\tCustom [dispatch errors](https://substrate.dev/docs/en/knowledgebase/runtime/errors)\n\t\t\tof this pallet.\n\t\t\t"]) . variant (:: scale_info :: build :: Variants :: new () . variant ("KittyCntOverflow" , | v | v . index (0usize as :: core :: primitive :: u8) . docs_always (& ["Handles arithemtic overflow when incrementing the Kitty counter."])) . variant ("ExceedMaxKittyOwned" , | v | v . index (1usize as :: core :: primitive :: u8) . docs_always (& ["An account cannot own more Kitties than `MaxKittyCount`."])) . variant ("BuyerIsKittyOwner" , | v | v . index (2usize as :: core :: primitive :: u8) . docs_always (& ["Buyer cannot be the owner."])) . variant ("TransferToSelf" , | v | v . index (3usize as :: core :: primitive :: u8) . docs_always (& ["Cannot transfer a kitty to its owner."])) . variant ("KittyNotExist" , | v | v . index (4usize as :: core :: primitive :: u8) . docs_always (& ["Handles checking whether the Kitty exists."])) . variant ("NotKittyOwner" , | v | v . index (5usize as :: core :: primitive :: u8) . docs_always (& ["Handles checking that the Kitty is owned by the account transferring, buying or setting a price for it."])) . variant ("KittyNotForSale" , | v | v . index (6usize as :: core :: primitive :: u8) . docs_always (& ["Ensures the Kitty is for sale."])) . variant ("KittyBidPriceTooLow" , | v | v . index (7usize as :: core :: primitive :: u8) . docs_always (& ["Ensures that the buying price is greater than the asking price."])) . variant ("NotEnoughBalance" , | v | v . index (8usize as :: core :: primitive :: u8) . docs_always (& ["Ensures that an account has enough funds to purchase a Kitty."])))
+            }
+        };
+    };
+    ///
+    ///         The [event](https://substrate.dev/docs/en/knowledgebase/runtime/events) emitted
+    ///         by this pallet.
+    ///
+    #[scale_info(skip_type_params(T), capture_docs = "always")]
+    pub enum Event<T: Config> {
+        /// A new Kitty was sucessfully created. \[sender, kitty_id\]
+        Created(T::AccountId, T::Hash),
+        /// Kitty price was sucessfully set. \[sender, kitty_id, new_price\]
+        PriceSet(T::AccountId, T::Hash, Option<BalanceOf<T>>),
+        /// A Kitty was sucessfully transferred. \[from, to, kitty_id\]
+        Transferred(T::AccountId, T::AccountId, T::Hash),
+        /// A Kitty was sucessfully bought. \[buyer, seller, kitty_id, bid_price\]
+        Bought(T::AccountId, T::AccountId, T::Hash, BalanceOf<T>),
+        #[doc(hidden)]
+        #[codec(skip)]
+        __Ignore(
+            frame_support::sp_std::marker::PhantomData<(T)>,
+            frame_support::Never,
+        ),
+    }
+    const _: () = {
+        impl<T: Config> core::clone::Clone for Event<T> {
+            fn clone(&self) -> Self {
+                match self {
+                    Self::Created(ref _0, ref _1) => {
+                        Self::Created(core::clone::Clone::clone(_0), core::clone::Clone::clone(_1))
+                    }
+                    Self::PriceSet(ref _0, ref _1, ref _2) => Self::PriceSet(
+                        core::clone::Clone::clone(_0),
+                        core::clone::Clone::clone(_1),
+                        core::clone::Clone::clone(_2),
+                    ),
+                    Self::Transferred(ref _0, ref _1, ref _2) => Self::Transferred(
+                        core::clone::Clone::clone(_0),
+                        core::clone::Clone::clone(_1),
+                        core::clone::Clone::clone(_2),
+                    ),
+                    Self::Bought(ref _0, ref _1, ref _2, ref _3) => Self::Bought(
+                        core::clone::Clone::clone(_0),
+                        core::clone::Clone::clone(_1),
+                        core::clone::Clone::clone(_2),
+                        core::clone::Clone::clone(_3),
+                    ),
+                    Self::__Ignore(ref _0, ref _1) => {
+                        Self::__Ignore(core::clone::Clone::clone(_0), core::clone::Clone::clone(_1))
+                    }
+                }
+            }
+        }
+    };
+    const _: () = {
+        impl<T: Config> core::cmp::Eq for Event<T> {}
+    };
+    const _: () = {
+        impl<T: Config> core::cmp::PartialEq for Event<T> {
+            fn eq(&self, other: &Self) -> bool {
+                match (self, other) {
+                    (Self::Created(_0, _1), Self::Created(_0_other, _1_other)) => {
+                        true && _0 == _0_other && _1 == _1_other
+                    }
+                    (Self::PriceSet(_0, _1, _2), Self::PriceSet(_0_other, _1_other, _2_other)) => {
+                        true && _0 == _0_other && _1 == _1_other && _2 == _2_other
+                    }
+                    (
+                        Self::Transferred(_0, _1, _2),
+                        Self::Transferred(_0_other, _1_other, _2_other),
+                    ) => true && _0 == _0_other && _1 == _1_other && _2 == _2_other,
+                    (
+                        Self::Bought(_0, _1, _2, _3),
+                        Self::Bought(_0_other, _1_other, _2_other, _3_other),
+                    ) => {
+                        true && _0 == _0_other && _1 == _1_other && _2 == _2_other && _3 == _3_other
+                    }
+                    (Self::__Ignore(_0, _1), Self::__Ignore(_0_other, _1_other)) => {
+                        true && _0 == _0_other && _1 == _1_other
+                    }
+                    (Self::Created { .. }, Self::PriceSet { .. }) => false,
+                    (Self::Created { .. }, Self::Transferred { .. }) => false,
+                    (Self::Created { .. }, Self::Bought { .. }) => false,
+                    (Self::Created { .. }, Self::__Ignore { .. }) => false,
+                    (Self::PriceSet { .. }, Self::Created { .. }) => false,
+                    (Self::PriceSet { .. }, Self::Transferred { .. }) => false,
+                    (Self::PriceSet { .. }, Self::Bought { .. }) => false,
+                    (Self::PriceSet { .. }, Self::__Ignore { .. }) => false,
+                    (Self::Transferred { .. }, Self::Created { .. }) => false,
+                    (Self::Transferred { .. }, Self::PriceSet { .. }) => false,
+                    (Self::Transferred { .. }, Self::Bought { .. }) => false,
+                    (Self::Transferred { .. }, Self::__Ignore { .. }) => false,
+                    (Self::Bought { .. }, Self::Created { .. }) => false,
+                    (Self::Bought { .. }, Self::PriceSet { .. }) => false,
+                    (Self::Bought { .. }, Self::Transferred { .. }) => false,
+                    (Self::Bought { .. }, Self::__Ignore { .. }) => false,
+                    (Self::__Ignore { .. }, Self::Created { .. }) => false,
+                    (Self::__Ignore { .. }, Self::PriceSet { .. }) => false,
+                    (Self::__Ignore { .. }, Self::Transferred { .. }) => false,
+                    (Self::__Ignore { .. }, Self::Bought { .. }) => false,
+                }
+            }
+        }
+    };
+    const _: () = {
+        impl<T: Config> core::fmt::Debug for Event<T> {
+            fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::fmt::Result {
+                match *self {
+                    Self::Created(ref _0, ref _1) => fmt
+                        .debug_tuple("Event::Created")
+                        .field(&_0)
+                        .field(&_1)
+                        .finish(),
+                    Self::PriceSet(ref _0, ref _1, ref _2) => fmt
+                        .debug_tuple("Event::PriceSet")
+                        .field(&_0)
+                        .field(&_1)
+                        .field(&_2)
+                        .finish(),
+                    Self::Transferred(ref _0, ref _1, ref _2) => fmt
+                        .debug_tuple("Event::Transferred")
+                        .field(&_0)
+                        .field(&_1)
+                        .field(&_2)
+                        .finish(),
+                    Self::Bought(ref _0, ref _1, ref _2, ref _3) => fmt
+                        .debug_tuple("Event::Bought")
+                        .field(&_0)
+                        .field(&_1)
+                        .field(&_2)
+                        .field(&_3)
+                        .finish(),
+                    Self::__Ignore(ref _0, ref _1) => fmt
+                        .debug_tuple("Event::__Ignore")
+                        .field(&_0)
+                        .field(&_1)
+                        .finish(),
+                }
+            }
+        }
+    };
+    const _: () = {
+        impl<T: Config> ::codec::Encode for Event<T>
+        where
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            Option<BalanceOf<T>>: ::codec::Encode,
+            Option<BalanceOf<T>>: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            BalanceOf<T>: ::codec::Encode,
+            BalanceOf<T>: ::codec::Encode,
+        {
+            fn encode_to<__CodecOutputEdqy: ::codec::Output + ?::core::marker::Sized>(
+                &self,
+                __codec_dest_edqy: &mut __CodecOutputEdqy,
+            ) {
+                match *self {
+                    Event::Created(ref aa, ref ba) => {
+                        __codec_dest_edqy.push_byte(0usize as ::core::primitive::u8);
+                        ::codec::Encode::encode_to(aa, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(ba, __codec_dest_edqy);
+                    }
+                    Event::PriceSet(ref aa, ref ba, ref ca) => {
+                        __codec_dest_edqy.push_byte(1usize as ::core::primitive::u8);
+                        ::codec::Encode::encode_to(aa, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(ba, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(ca, __codec_dest_edqy);
+                    }
+                    Event::Transferred(ref aa, ref ba, ref ca) => {
+                        __codec_dest_edqy.push_byte(2usize as ::core::primitive::u8);
+                        ::codec::Encode::encode_to(aa, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(ba, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(ca, __codec_dest_edqy);
+                    }
+                    Event::Bought(ref aa, ref ba, ref ca, ref da) => {
+                        __codec_dest_edqy.push_byte(3usize as ::core::primitive::u8);
+                        ::codec::Encode::encode_to(aa, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(ba, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(ca, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(da, __codec_dest_edqy);
+                    }
+                    _ => (),
+                }
+            }
+        }
+        impl<T: Config> ::codec::EncodeLike for Event<T>
+        where
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            Option<BalanceOf<T>>: ::codec::Encode,
+            Option<BalanceOf<T>>: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::AccountId: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            T::Hash: ::codec::Encode,
+            BalanceOf<T>: ::codec::Encode,
+            BalanceOf<T>: ::codec::Encode,
+        {
+        }
+    };
+    const _: () = {
+        impl<T: Config> ::codec::Decode for Event<T>
+        where
+            T::AccountId: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::Hash: ::codec::Decode,
+            T::Hash: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::Hash: ::codec::Decode,
+            T::Hash: ::codec::Decode,
+            Option<BalanceOf<T>>: ::codec::Decode,
+            Option<BalanceOf<T>>: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::Hash: ::codec::Decode,
+            T::Hash: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::AccountId: ::codec::Decode,
+            T::Hash: ::codec::Decode,
+            T::Hash: ::codec::Decode,
+            BalanceOf<T>: ::codec::Decode,
+            BalanceOf<T>: ::codec::Decode,
+        {
+            fn decode<__CodecInputEdqy: ::codec::Input>(
+                __codec_input_edqy: &mut __CodecInputEdqy,
+            ) -> ::core::result::Result<Self, ::codec::Error> {
+                match __codec_input_edqy
+                    .read_byte()
+                    .map_err(|e| e.chain("Could not decode `Event`, failed to read variant byte"))?
+                {
+                    __codec_x_edqy if __codec_x_edqy == 0usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Event::<T>::Created(
+                            {
+                                let __codec_res_edqy =
+                                    <T::AccountId as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::Created.0`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            {
+                                let __codec_res_edqy =
+                                    <T::Hash as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::Created.1`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                        ))
+                    }
+                    __codec_x_edqy if __codec_x_edqy == 1usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Event::<T>::PriceSet(
+                            {
+                                let __codec_res_edqy =
+                                    <T::AccountId as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::PriceSet.0`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            {
+                                let __codec_res_edqy =
+                                    <T::Hash as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::PriceSet.1`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            {
+                                let __codec_res_edqy =
+                                    <Option<BalanceOf<T>> as ::codec::Decode>::decode(
+                                        __codec_input_edqy,
+                                    );
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::PriceSet.2`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                        ))
+                    }
+                    __codec_x_edqy if __codec_x_edqy == 2usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Event::<T>::Transferred(
+                            {
+                                let __codec_res_edqy =
+                                    <T::AccountId as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::Transferred.0`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            {
+                                let __codec_res_edqy =
+                                    <T::AccountId as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::Transferred.1`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            {
+                                let __codec_res_edqy =
+                                    <T::Hash as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::Transferred.2`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                        ))
+                    }
+                    __codec_x_edqy if __codec_x_edqy == 3usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Event::<T>::Bought(
+                            {
+                                let __codec_res_edqy =
+                                    <T::AccountId as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::Bought.0`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            {
+                                let __codec_res_edqy =
+                                    <T::AccountId as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::Bought.1`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            {
+                                let __codec_res_edqy =
+                                    <T::Hash as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::Bought.2`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            {
+                                let __codec_res_edqy =
+                                    <BalanceOf<T> as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Event::Bought.3`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                        ))
+                    }
+                    _ => ::core::result::Result::Err(<_ as ::core::convert::Into<_>>::into(
+                        "Could not decode `Event`, variant doesn\'t exist",
+                    )),
+                }
+            }
+        }
+    };
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _: () = {
+        impl<T: Config> ::scale_info::TypeInfo for Event<T>
+        where
+            T::AccountId: ::scale_info::TypeInfo + 'static,
+            T::Hash: ::scale_info::TypeInfo + 'static,
+            T::AccountId: ::scale_info::TypeInfo + 'static,
+            T::Hash: ::scale_info::TypeInfo + 'static,
+            Option<BalanceOf<T>>: ::scale_info::TypeInfo + 'static,
+            T::AccountId: ::scale_info::TypeInfo + 'static,
+            T::AccountId: ::scale_info::TypeInfo + 'static,
+            T::Hash: ::scale_info::TypeInfo + 'static,
+            T::AccountId: ::scale_info::TypeInfo + 'static,
+            T::AccountId: ::scale_info::TypeInfo + 'static,
+            T::Hash: ::scale_info::TypeInfo + 'static,
+            BalanceOf<T>: ::scale_info::TypeInfo + 'static,
+            frame_support::sp_std::marker::PhantomData<(T)>: ::scale_info::TypeInfo + 'static,
+            T: Config + 'static,
+        {
+            type Identity = Self;
+            fn type_info() -> ::scale_info::Type {
+                :: scale_info :: Type :: builder () . path (:: scale_info :: Path :: new ("Event" , "pallet_kitties::pallet")) . type_params (< [_] > :: into_vec (box [:: scale_info :: TypeParameter :: new ("T" , :: core :: option :: Option :: None)])) . docs_always (& ["\n\t\t\tThe [event](https://substrate.dev/docs/en/knowledgebase/runtime/events) emitted\n\t\t\tby this pallet.\n\t\t\t"]) . variant (:: scale_info :: build :: Variants :: new () . variant ("Created" , | v | v . index (0usize as :: core :: primitive :: u8) . fields (:: scale_info :: build :: Fields :: unnamed () . field (| f | f . ty :: < T :: AccountId > () . type_name ("T::AccountId") . docs_always (& [])) . field (| f | f . ty :: < T :: Hash > () . type_name ("T::Hash") . docs_always (& []))) . docs_always (& ["A new Kitty was sucessfully created. \\[sender, kitty_id\\]"])) . variant ("PriceSet" , | v | v . index (1usize as :: core :: primitive :: u8) . fields (:: scale_info :: build :: Fields :: unnamed () . field (| f | f . ty :: < T :: AccountId > () . type_name ("T::AccountId") . docs_always (& [])) . field (| f | f . ty :: < T :: Hash > () . type_name ("T::Hash") . docs_always (& [])) . field (| f | f . ty :: < Option < BalanceOf < T > > > () . type_name ("Option<BalanceOf<T>>") . docs_always (& []))) . docs_always (& ["Kitty price was sucessfully set. \\[sender, kitty_id, new_price\\]"])) . variant ("Transferred" , | v | v . index (2usize as :: core :: primitive :: u8) . fields (:: scale_info :: build :: Fields :: unnamed () . field (| f | f . ty :: < T :: AccountId > () . type_name ("T::AccountId") . docs_always (& [])) . field (| f | f . ty :: < T :: AccountId > () . type_name ("T::AccountId") . docs_always (& [])) . field (| f | f . ty :: < T :: Hash > () . type_name ("T::Hash") . docs_always (& []))) . docs_always (& ["A Kitty was sucessfully transferred. \\[from, to, kitty_id\\]"])) . variant ("Bought" , | v | v . index (3usize as :: core :: primitive :: u8) . fields (:: scale_info :: build :: Fields :: unnamed () . field (| f | f . ty :: < T :: AccountId > () . type_name ("T::AccountId") . docs_always (& [])) . field (| f | f . ty :: < T :: AccountId > () . type_name ("T::AccountId") . docs_always (& [])) . field (| f | f . ty :: < T :: Hash > () . type_name ("T::Hash") . docs_always (& [])) . field (| f | f . ty :: < BalanceOf < T > > () . type_name ("BalanceOf<T>") . docs_always (& []))) . docs_always (& ["A Kitty was sucessfully bought. \\[buyer, seller, kitty_id, bid_price\\]"])))
+            }
+        };
+    };
+    /// Keeps track of the number of Kitties in existence.
+    #[allow(type_alias_bounds)]
+    pub(super) type KittyCnt<T: Config> =
+        StorageValue<_GeneratedPrefixForStorageKittyCnt<T>, u64, ValueQuery>;
+    /// Stores a Kitty's unique traits, owner and price.
+    #[allow(type_alias_bounds)]
+    pub(super) type Kitties<T: Config> =
+        StorageMap<_GeneratedPrefixForStorageKitties<T>, Twox64Concat, T::Hash, Kitty<T>>;
+    /// Keeps track of what accounts own what Kitty.
+    #[allow(type_alias_bounds)]
+    pub(super) type KittiesOwned<T: Config> = StorageMap<
+        _GeneratedPrefixForStorageKittiesOwned<T>,
+        Twox64Concat,
+        T::AccountId,
+        BoundedVec<T::Hash, T::MaxKittyOwned>,
+        ValueQuery,
+    >;
+    ///
+    ///                 Can be used to configure the
+    ///                 [genesis state](https://substrate.dev/docs/en/knowledgebase/integrate/chain-spec#the-genesis-state)
+    ///                 of this pallet.
+    ///
+    #[cfg(feature = "std")]
+    #[serde(rename_all = "camelCase")]
+    #[serde(deny_unknown_fields)]
+    #[serde(bound(serialize = ""))]
+    #[serde(bound(deserialize = ""))]
+    #[serde(crate = "frame_support::serde")]
+    pub struct GenesisConfig<T: Config> {
+        pub kitties: Vec<(T::AccountId, [u8; 16], Gender)>,
+    }
+    #[doc(hidden)]
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _: () = {
+        use frame_support::serde as _serde;
+        #[automatically_derived]
+        impl<T: Config> frame_support::serde::Serialize for GenesisConfig<T> {
+            fn serialize<__S>(
+                &self,
+                __serializer: __S,
+            ) -> frame_support::serde::__private::Result<__S::Ok, __S::Error>
+            where
+                __S: frame_support::serde::Serializer,
+            {
+                let mut __serde_state = match _serde::Serializer::serialize_struct(
+                    __serializer,
+                    "GenesisConfig",
+                    false as usize + 1,
+                ) {
+                    _serde::__private::Ok(__val) => __val,
+                    _serde::__private::Err(__err) => {
+                        return _serde::__private::Err(__err);
+                    }
+                };
+                match _serde::ser::SerializeStruct::serialize_field(
+                    &mut __serde_state,
+                    "kitties",
+                    &self.kitties,
+                ) {
+                    _serde::__private::Ok(__val) => __val,
+                    _serde::__private::Err(__err) => {
+                        return _serde::__private::Err(__err);
+                    }
+                };
+                _serde::ser::SerializeStruct::end(__serde_state)
+            }
+        }
+    };
+    #[doc(hidden)]
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _: () = {
+        use frame_support::serde as _serde;
+        #[automatically_derived]
+        impl<'de, T: Config> frame_support::serde::Deserialize<'de> for GenesisConfig<T> {
+            fn deserialize<__D>(
+                __deserializer: __D,
+            ) -> frame_support::serde::__private::Result<Self, __D::Error>
+            where
+                __D: frame_support::serde::Deserializer<'de>,
+            {
+                #[allow(non_camel_case_types)]
+                enum __Field {
+                    __field0,
+                }
+                struct __FieldVisitor;
+                impl<'de> _serde::de::Visitor<'de> for __FieldVisitor {
+                    type Value = __Field;
+                    fn expecting(
+                        &self,
+                        __formatter: &mut _serde::__private::Formatter,
+                    ) -> _serde::__private::fmt::Result {
+                        _serde::__private::Formatter::write_str(__formatter, "field identifier")
+                    }
+                    fn visit_u64<__E>(
+                        self,
+                        __value: u64,
+                    ) -> _serde::__private::Result<Self::Value, __E>
+                    where
+                        __E: _serde::de::Error,
+                    {
+                        match __value {
+                            0u64 => _serde::__private::Ok(__Field::__field0),
+                            _ => _serde::__private::Err(_serde::de::Error::invalid_value(
+                                _serde::de::Unexpected::Unsigned(__value),
+                                &"field index 0 <= i < 1",
+                            )),
+                        }
+                    }
+                    fn visit_str<__E>(
+                        self,
+                        __value: &str,
+                    ) -> _serde::__private::Result<Self::Value, __E>
+                    where
+                        __E: _serde::de::Error,
+                    {
+                        match __value {
+                            "kitties" => _serde::__private::Ok(__Field::__field0),
+                            _ => _serde::__private::Err(_serde::de::Error::unknown_field(
+                                __value, FIELDS,
+                            )),
+                        }
+                    }
+                    fn visit_bytes<__E>(
+                        self,
+                        __value: &[u8],
+                    ) -> _serde::__private::Result<Self::Value, __E>
+                    where
+                        __E: _serde::de::Error,
+                    {
+                        match __value {
+                            b"kitties" => _serde::__private::Ok(__Field::__field0),
+                            _ => {
+                                let __value = &_serde::__private::from_utf8_lossy(__value);
+                                _serde::__private::Err(_serde::de::Error::unknown_field(
+                                    __value, FIELDS,
+                                ))
+                            }
+                        }
+                    }
+                }
+                impl<'de> _serde::Deserialize<'de> for __Field {
+                    #[inline]
+                    fn deserialize<__D>(
+                        __deserializer: __D,
+                    ) -> _serde::__private::Result<Self, __D::Error>
+                    where
+                        __D: _serde::Deserializer<'de>,
+                    {
+                        _serde::Deserializer::deserialize_identifier(__deserializer, __FieldVisitor)
+                    }
+                }
+                struct __Visitor<'de, T: Config> {
+                    marker: _serde::__private::PhantomData<GenesisConfig<T>>,
+                    lifetime: _serde::__private::PhantomData<&'de ()>,
+                }
+                impl<'de, T: Config> _serde::de::Visitor<'de> for __Visitor<'de, T> {
+                    type Value = GenesisConfig<T>;
+                    fn expecting(
+                        &self,
+                        __formatter: &mut _serde::__private::Formatter,
+                    ) -> _serde::__private::fmt::Result {
+                        _serde::__private::Formatter::write_str(__formatter, "struct GenesisConfig")
+                    }
+                    #[inline]
+                    fn visit_seq<__A>(
+                        self,
+                        mut __seq: __A,
+                    ) -> _serde::__private::Result<Self::Value, __A::Error>
+                    where
+                        __A: _serde::de::SeqAccess<'de>,
+                    {
+                        let __field0 = match match _serde::de::SeqAccess::next_element::<
+                            Vec<(T::AccountId, [u8; 16], Gender)>,
+                        >(&mut __seq)
+                        {
+                            _serde::__private::Ok(__val) => __val,
+                            _serde::__private::Err(__err) => {
+                                return _serde::__private::Err(__err);
+                            }
+                        } {
+                            _serde::__private::Some(__value) => __value,
+                            _serde::__private::None => {
+                                return _serde::__private::Err(_serde::de::Error::invalid_length(
+                                    0usize,
+                                    &"struct GenesisConfig with 1 element",
+                                ));
+                            }
+                        };
+                        _serde::__private::Ok(GenesisConfig { kitties: __field0 })
+                    }
+                    #[inline]
+                    fn visit_map<__A>(
+                        self,
+                        mut __map: __A,
+                    ) -> _serde::__private::Result<Self::Value, __A::Error>
+                    where
+                        __A: _serde::de::MapAccess<'de>,
+                    {
+                        let mut __field0: _serde::__private::Option<
+                            Vec<(T::AccountId, [u8; 16], Gender)>,
+                        > = _serde::__private::None;
+                        while let _serde::__private::Some(__key) =
+                            match _serde::de::MapAccess::next_key::<__Field>(&mut __map) {
+                                _serde::__private::Ok(__val) => __val,
+                                _serde::__private::Err(__err) => {
+                                    return _serde::__private::Err(__err);
+                                }
+                            }
+                        {
+                            match __key {
+                                __Field::__field0 => {
+                                    if _serde::__private::Option::is_some(&__field0) {
+                                        return _serde::__private::Err(
+                                            <__A::Error as _serde::de::Error>::duplicate_field(
+                                                "kitties",
+                                            ),
+                                        );
+                                    }
+                                    __field0 = _serde::__private::Some(
+                                        match _serde::de::MapAccess::next_value::<
+                                            Vec<(T::AccountId, [u8; 16], Gender)>,
+                                        >(&mut __map)
+                                        {
+                                            _serde::__private::Ok(__val) => __val,
+                                            _serde::__private::Err(__err) => {
+                                                return _serde::__private::Err(__err);
+                                            }
+                                        },
+                                    );
+                                }
+                            }
+                        }
+                        let __field0 = match __field0 {
+                            _serde::__private::Some(__field0) => __field0,
+                            _serde::__private::None => {
+                                match _serde::__private::de::missing_field("kitties") {
+                                    _serde::__private::Ok(__val) => __val,
+                                    _serde::__private::Err(__err) => {
+                                        return _serde::__private::Err(__err);
+                                    }
+                                }
+                            }
+                        };
+                        _serde::__private::Ok(GenesisConfig { kitties: __field0 })
+                    }
+                }
+                const FIELDS: &'static [&'static str] = &["kitties"];
+                _serde::Deserializer::deserialize_struct(
+                    __deserializer,
+                    "GenesisConfig",
+                    FIELDS,
+                    __Visitor {
+                        marker: _serde::__private::PhantomData::<GenesisConfig<T>>,
+                        lifetime: _serde::__private::PhantomData,
+                    },
+                )
+            }
+        }
+    };
+    #[cfg(feature = "std")]
+    impl<T: Config> Default for GenesisConfig<T> {
+        fn default() -> GenesisConfig<T> {
+            GenesisConfig {
+                kitties: ::alloc::vec::Vec::new(),
+            }
+        }
+    }
+    #[cfg(feature = "std")]
+    impl<T: Config> GenesisBuild<T> for GenesisConfig<T> {
+        fn build(&self) {
+            for (acct, dna, gender) in &self.kitties {
+                let _ = <Pallet<T>>::mint(acct, Some(dna.clone()), Some(gender.clone()));
+            }
+        }
+    }
+    impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {}
+    impl<T: Config> Pallet<T> {
+        /// Create a new unique kitty.
+        ///
+        /// The actual kitty creation is done in the `mint()` function.
+        pub fn create_kitty(origin: OriginFor<T>) -> DispatchResult {
+            let sender = ensure_signed(origin)?;
+            let kitty_id = Self::mint(&sender, None, None)?;
+            {
+                let lvl = ::log::Level::Info;
+                if lvl <= ::log::STATIC_MAX_LEVEL && lvl <= ::log::max_level() {
+                    ::log::__private_api_log(
+                        ::core::fmt::Arguments::new_v1(
+                            &["A kitty is born with ID: ", "."],
+                            &match (&kitty_id,) {
+                                _args => [::core::fmt::ArgumentV1::new(
+                                    _args.0,
+                                    ::core::fmt::Debug::fmt,
+                                )],
+                            },
+                        ),
+                        lvl,
+                        &(
+                            "pallet_kitties::pallet",
+                            "pallet_kitties::pallet",
+                            "pallets/kitties/src/lib.rs",
+                            165u32,
+                        ),
+                    );
+                }
+            };
+            Self::deposit_event(Event::Created(sender, kitty_id));
+            Ok(())
+        }
+        /// Set the price for a Kitty.
+        ///
+        /// Updates Kitty price and updates storage.
+        pub fn set_price(
+            origin: OriginFor<T>,
+            kitty_id: T::Hash,
+            new_price: Option<BalanceOf<T>>,
+        ) -> DispatchResult {
+            let sender = ensure_signed(origin)?;
+            {
+                if !Self::is_kitty_owner(&kitty_id, &sender)? {
+                    {
+                        return Err(<Error<T>>::NotKittyOwner.into());
+                    };
+                }
+            };
+            let mut kitty = Self::kitties(&kitty_id).ok_or(<Error<T>>::KittyNotExist)?;
+            kitty.price = new_price.clone();
+            <Kitties<T>>::insert(&kitty_id, kitty);
+            Self::deposit_event(Event::PriceSet(sender, kitty_id, new_price));
+            Ok(())
+        }
+        /// Directly transfer a kitty to another recipient.
+        ///
+        /// Any account that holds a kitty can send it to another Account. This will reset the asking
+        /// price of the kitty, marking it not for sale.
+        pub fn transfer(
+            origin: OriginFor<T>,
+            to: T::AccountId,
+            kitty_id: T::Hash,
+        ) -> DispatchResult {
+            let from = ensure_signed(origin)?;
+            {
+                if !Self::is_kitty_owner(&kitty_id, &from)? {
+                    {
+                        return Err(<Error<T>>::NotKittyOwner.into());
+                    };
+                }
+            };
+            {
+                if !(from != to) {
+                    {
+                        return Err(<Error<T>>::TransferToSelf.into());
+                    };
+                }
+            };
+            let to_owned = <KittiesOwned<T>>::get(&to);
+            {
+                if !((to_owned.len() as u32) < T::MaxKittyOwned::get()) {
+                    {
+                        return Err(<Error<T>>::ExceedMaxKittyOwned.into());
+                    };
+                }
+            };
+            Self::transfer_kitty_to(&kitty_id, &to)?;
+            Self::deposit_event(Event::Transferred(from, to, kitty_id));
+            Ok(())
+        }
+        /// Buy a saleable Kitty. The bid price provided from the buyer has to be equal or higher
+        /// than the ask price from the seller.
+        ///
+        /// This will reset the asking price of the kitty, marking it not for sale.
+        /// Marking this method `transactional` so when an error is returned, we ensure no storage is changed.
+        pub fn buy_kitty(
+            origin: OriginFor<T>,
+            kitty_id: T::Hash,
+            bid_price: BalanceOf<T>,
+        ) -> DispatchResult {
+            use frame_support::storage::{with_transaction, TransactionOutcome};
+            with_transaction(|| {
+                let r = (|| {
+                    let buyer = ensure_signed(origin)?;
+                    let kitty = Self::kitties(&kitty_id).ok_or(<Error<T>>::KittyNotExist)?;
+                    {
+                        if !(kitty.owner != buyer) {
+                            {
+                                return Err(<Error<T>>::BuyerIsKittyOwner.into());
+                            };
+                        }
+                    };
+                    if let Some(ask_price) = kitty.price {
+                        {
+                            if !(ask_price <= bid_price) {
+                                {
+                                    return Err(<Error<T>>::KittyBidPriceTooLow.into());
+                                };
+                            }
+                        };
+                    } else {
+                        Err(<Error<T>>::KittyNotForSale)?;
+                    }
+                    {
+                        if !(T::Currency::free_balance(&buyer) >= bid_price) {
+                            {
+                                return Err(<Error<T>>::NotEnoughBalance.into());
+                            };
+                        }
+                    };
+                    let to_owned = <KittiesOwned<T>>::get(&buyer);
+                    {
+                        if !((to_owned.len() as u32) < T::MaxKittyOwned::get()) {
+                            {
+                                return Err(<Error<T>>::ExceedMaxKittyOwned.into());
+                            };
+                        }
+                    };
+                    let seller = kitty.owner.clone();
+                    T::Currency::transfer(
+                        &buyer,
+                        &seller,
+                        bid_price,
+                        ExistenceRequirement::KeepAlive,
+                    )?;
+                    Self::transfer_kitty_to(&kitty_id, &buyer)?;
+                    Self::deposit_event(Event::Bought(buyer, seller, kitty_id, bid_price));
+                    Ok(())
+                })();
+                if r.is_ok() {
+                    TransactionOutcome::Commit(r)
+                } else {
+                    TransactionOutcome::Rollback(r)
+                }
+            })
+        }
+        /// Breed a Kitty.
+        ///
+        /// Breed two kitties to create a new generation
+        /// of Kitties.
+        pub fn breed_kitty(
+            origin: OriginFor<T>,
+            parent1: T::Hash,
+            parent2: T::Hash,
+        ) -> DispatchResult {
+            let sender = ensure_signed(origin)?;
+            {
+                if !Self::is_kitty_owner(&parent1, &sender)? {
+                    {
+                        return Err(<Error<T>>::NotKittyOwner.into());
+                    };
+                }
+            };
+            {
+                if !Self::is_kitty_owner(&parent2, &sender)? {
+                    {
+                        return Err(<Error<T>>::NotKittyOwner.into());
+                    };
+                }
+            };
+            let new_dna = Self::breed_dna(&parent1, &parent2)?;
+            Self::mint(&sender, Some(new_dna), None)?;
+            Ok(())
+        }
+    }
+    impl<T: Config> Pallet<T> {
+        fn gen_gender() -> Gender {
+            let random = T::KittyRandomness::random(&b"gender"[..]).0;
+            match random.as_ref()[0] % 2 {
+                0 => Gender::Male,
+                _ => Gender::Female,
+            }
+        }
+        fn gen_dna() -> [u8; 16] {
+            let payload = (
+                T::KittyRandomness::random(&b"dna"[..]).0,
+                <frame_system::Pallet<T>>::block_number(),
+            );
+            payload.using_encoded(blake2_128)
+        }
+        pub fn breed_dna(parent1: &T::Hash, parent2: &T::Hash) -> Result<[u8; 16], Error<T>> {
+            let dna1 = Self::kitties(parent1).ok_or(<Error<T>>::KittyNotExist)?.dna;
+            let dna2 = Self::kitties(parent2).ok_or(<Error<T>>::KittyNotExist)?.dna;
+            let mut new_dna = Self::gen_dna();
+            for i in 0..new_dna.len() {
+                new_dna[i] = (new_dna[i] & dna1[i]) | (!new_dna[i] & dna2[i]);
+            }
+            Ok(new_dna)
+        }
+        pub fn mint(
+            owner: &T::AccountId,
+            dna: Option<[u8; 16]>,
+            gender: Option<Gender>,
+        ) -> Result<T::Hash, Error<T>> {
+            let kitty = Kitty::<T> {
+                dna: dna.unwrap_or_else(Self::gen_dna),
+                price: None,
+                gender: gender.unwrap_or_else(Self::gen_gender),
+                owner: owner.clone(),
+            };
+            let kitty_id = T::Hashing::hash_of(&kitty);
+            let new_cnt = Self::kitty_cnt()
+                .checked_add(1)
+                .ok_or(<Error<T>>::KittyCntOverflow)?;
+            <KittiesOwned<T>>::try_mutate(&owner, |kitty_vec| kitty_vec.try_push(kitty_id))
+                .map_err(|_| <Error<T>>::ExceedMaxKittyOwned)?;
+            <Kitties<T>>::insert(kitty_id, kitty);
+            <KittyCnt<T>>::put(new_cnt);
+            Ok(kitty_id)
+        }
+        pub fn is_kitty_owner(kitty_id: &T::Hash, acct: &T::AccountId) -> Result<bool, Error<T>> {
+            match Self::kitties(kitty_id) {
+                Some(kitty) => Ok(kitty.owner == *acct),
+                None => Err(<Error<T>>::KittyNotExist),
+            }
+        }
+        pub fn transfer_kitty_to(kitty_id: &T::Hash, to: &T::AccountId) -> Result<(), Error<T>> {
+            use frame_support::storage::{with_transaction, TransactionOutcome};
+            with_transaction(|| {
+                let r = (|| {
+                    let mut kitty = Self::kitties(&kitty_id).ok_or(<Error<T>>::KittyNotExist)?;
+                    let prev_owner = kitty.owner.clone();
+                    <KittiesOwned<T>>::try_mutate(&prev_owner, |owned| {
+                        if let Some(ind) = owned.iter().position(|&id| id == *kitty_id) {
+                            owned.swap_remove(ind);
+                            return Ok(());
+                        }
+                        Err(())
+                    })
+                    .map_err(|_| <Error<T>>::KittyNotExist)?;
+                    kitty.owner = to.clone();
+                    kitty.price = None;
+                    <Kitties<T>>::insert(kitty_id, kitty);
+                    <KittiesOwned<T>>::try_mutate(to, |vec| vec.try_push(*kitty_id))
+                        .map_err(|_| <Error<T>>::ExceedMaxKittyOwned)?;
+                    Ok(())
+                })();
+                if r.is_ok() {
+                    TransactionOutcome::Commit(r)
+                } else {
+                    TransactionOutcome::Rollback(r)
+                }
+            })
+        }
+    }
+    impl<T: Config> Pallet<T> {
+        #[doc(hidden)]
+        pub fn pallet_constants_metadata(
+        ) -> frame_support::sp_std::vec::Vec<frame_support::metadata::PalletConstantMetadata>
+        {
+            <[_]>::into_vec(box [{
+                frame_support::metadata::PalletConstantMetadata {
+                    name: "MaxKittyOwned",
+                    ty: frame_support::scale_info::meta_type::<u32>(),
+                    value: {
+                        let value = <T::MaxKittyOwned as frame_support::traits::Get<u32>>::get();
+                        frame_support::codec::Encode::encode(&value)
+                    },
+                    docs: <[_]>::into_vec(box [
+                        " The maximum amount of Kitties a single account can own.",
+                    ]),
+                }
+            }])
+        }
+    }
+    impl<T: Config> Pallet<T> {
+        pub fn error_metadata() -> Option<frame_support::metadata::PalletErrorMetadata> {
+            Some(frame_support::metadata::PalletErrorMetadata {
+                ty: frame_support::scale_info::meta_type::<Error<T>>(),
+            })
+        }
+    }
+    /// Type alias to `Pallet`, to be used by `construct_runtime`.
+    ///
+    /// Generated by `pallet` attribute macro.
+    #[deprecated(note = "use `Pallet` instead")]
+    #[allow(dead_code)]
+    pub type Module<T> = Pallet<T>;
+    impl<T: Config> frame_support::traits::GetStorageVersion for Pallet<T> {
+        fn current_storage_version() -> frame_support::traits::StorageVersion {
+            frame_support::traits::StorageVersion::default()
+        }
+        fn on_chain_storage_version() -> frame_support::traits::StorageVersion {
+            frame_support::traits::StorageVersion::get::<Self>()
+        }
+    }
+    impl<T: Config> frame_support::traits::OnGenesis for Pallet<T> {
+        fn on_genesis() {
+            let storage_version = frame_support::traits::StorageVersion::default();
+            storage_version.put::<Self>();
+        }
+    }
+    impl<T: Config> frame_support::traits::PalletInfoAccess for Pallet<T> {
+        fn index() -> usize {
+            <<T as frame_system::Config>::PalletInfo as frame_support::traits::PalletInfo>::index::<
+                Self,
+            >()
+            .expect(
+                "Pallet is part of the runtime because pallet `Config` trait is \
+                        implemented by the runtime",
+            )
+        }
+        fn name() -> &'static str {
+            <<T as frame_system::Config>::PalletInfo as frame_support::traits::PalletInfo>::name::<
+                Self,
+            >()
+            .expect(
+                "Pallet is part of the runtime because pallet `Config` trait is \
+                        implemented by the runtime",
+            )
+        }
+        fn module_name() -> &'static str {
+            < < T as frame_system :: Config > :: PalletInfo as frame_support :: traits :: PalletInfo > :: module_name :: < Self > () . expect ("Pallet is part of the runtime because pallet `Config` trait is \
+                        implemented by the runtime")
+        }
+        fn crate_version() -> frame_support::traits::CrateVersion {
+            frame_support::traits::CrateVersion {
+                major: 3u16,
+                minor: 0u8,
+                patch: 0u8,
+            }
+        }
+    }
+    impl<T: Config> frame_support::traits::StorageInfoTrait for Pallet<T> {
+        fn storage_info() -> frame_support::sp_std::vec::Vec<frame_support::traits::StorageInfo> {
+            #[allow(unused_mut)]
+            let mut res = ::alloc::vec::Vec::new();
+            {
+                let mut storage_info = < KittyCnt < T > as frame_support :: traits :: PartialStorageInfoTrait > :: partial_storage_info () ;
+                res.append(&mut storage_info);
+            }
+            {
+                let mut storage_info = < Kitties < T > as frame_support :: traits :: PartialStorageInfoTrait > :: partial_storage_info () ;
+                res.append(&mut storage_info);
+            }
+            {
+                let mut storage_info = < KittiesOwned < T > as frame_support :: traits :: PartialStorageInfoTrait > :: partial_storage_info () ;
+                res.append(&mut storage_info);
+            }
+            res
+        }
+    }
+    #[doc(hidden)]
+    pub mod __substrate_call_check {
+        #[doc(hidden)]
+        pub use __is_call_part_defined_0 as is_call_part_defined;
+    }
+    ///Contains one variant per dispatchable that can be called by an extrinsic.
+    #[codec(encode_bound())]
+    #[codec(decode_bound())]
+    #[scale_info(skip_type_params(T), capture_docs = "always")]
+    #[allow(non_camel_case_types)]
+    pub enum Call<T: Config> {
+        #[doc(hidden)]
+        #[codec(skip)]
+        __Ignore(
+            frame_support::sp_std::marker::PhantomData<(T,)>,
+            frame_support::Never,
+        ),
+        /// Create a new unique kitty.
+        ///
+        /// The actual kitty creation is done in the `mint()` function.
+        create_kitty {},
+        /// Set the price for a Kitty.
+        ///
+        /// Updates Kitty price and updates storage.
+        set_price {
+            kitty_id: T::Hash,
+            new_price: Option<BalanceOf<T>>,
+        },
+        /// Directly transfer a kitty to another recipient.
+        ///
+        /// Any account that holds a kitty can send it to another Account. This will reset the asking
+        /// price of the kitty, marking it not for sale.
+        transfer { to: T::AccountId, kitty_id: T::Hash },
+        /// Buy a saleable Kitty. The bid price provided from the buyer has to be equal or higher
+        /// than the ask price from the seller.
+        ///
+        /// This will reset the asking price of the kitty, marking it not for sale.
+        /// Marking this method `transactional` so when an error is returned, we ensure no storage is changed.
+        buy_kitty {
+            kitty_id: T::Hash,
+            bid_price: BalanceOf<T>,
+        },
+        /// Breed a Kitty.
+        ///
+        /// Breed two kitties to create a new generation
+        /// of Kitties.
+        breed_kitty { parent1: T::Hash, parent2: T::Hash },
+    }
+    const _: () = {
+        impl<T: Config> core::fmt::Debug for Call<T> {
+            fn fmt(&self, fmt: &mut core::fmt::Formatter) -> core::fmt::Result {
+                match *self {
+                    Self::__Ignore(ref _0, ref _1) => fmt
+                        .debug_tuple("Call::__Ignore")
+                        .field(&_0)
+                        .field(&_1)
+                        .finish(),
+                    Self::create_kitty {} => fmt.debug_struct("Call::create_kitty").finish(),
+                    Self::set_price {
+                        ref kitty_id,
+                        ref new_price,
+                    } => fmt
+                        .debug_struct("Call::set_price")
+                        .field("kitty_id", &kitty_id)
+                        .field("new_price", &new_price)
+                        .finish(),
+                    Self::transfer {
+                        ref to,
+                        ref kitty_id,
+                    } => fmt
+                        .debug_struct("Call::transfer")
+                        .field("to", &to)
+                        .field("kitty_id", &kitty_id)
+                        .finish(),
+                    Self::buy_kitty {
+                        ref kitty_id,
+                        ref bid_price,
+                    } => fmt
+                        .debug_struct("Call::buy_kitty")
+                        .field("kitty_id", &kitty_id)
+                        .field("bid_price", &bid_price)
+                        .finish(),
+                    Self::breed_kitty {
+                        ref parent1,
+                        ref parent2,
+                    } => fmt
+                        .debug_struct("Call::breed_kitty")
+                        .field("parent1", &parent1)
+                        .field("parent2", &parent2)
+                        .finish(),
+                }
+            }
+        }
+    };
+    const _: () = {
+        impl<T: Config> core::clone::Clone for Call<T> {
+            fn clone(&self) -> Self {
+                match self {
+                    Self::__Ignore(ref _0, ref _1) => {
+                        Self::__Ignore(core::clone::Clone::clone(_0), core::clone::Clone::clone(_1))
+                    }
+                    Self::create_kitty {} => Self::create_kitty {},
+                    Self::set_price {
+                        ref kitty_id,
+                        ref new_price,
+                    } => Self::set_price {
+                        kitty_id: core::clone::Clone::clone(kitty_id),
+                        new_price: core::clone::Clone::clone(new_price),
+                    },
+                    Self::transfer {
+                        ref to,
+                        ref kitty_id,
+                    } => Self::transfer {
+                        to: core::clone::Clone::clone(to),
+                        kitty_id: core::clone::Clone::clone(kitty_id),
+                    },
+                    Self::buy_kitty {
+                        ref kitty_id,
+                        ref bid_price,
+                    } => Self::buy_kitty {
+                        kitty_id: core::clone::Clone::clone(kitty_id),
+                        bid_price: core::clone::Clone::clone(bid_price),
+                    },
+                    Self::breed_kitty {
+                        ref parent1,
+                        ref parent2,
+                    } => Self::breed_kitty {
+                        parent1: core::clone::Clone::clone(parent1),
+                        parent2: core::clone::Clone::clone(parent2),
+                    },
+                }
+            }
+        }
+    };
+    const _: () = {
+        impl<T: Config> core::cmp::Eq for Call<T> {}
+    };
+    const _: () = {
+        impl<T: Config> core::cmp::PartialEq for Call<T> {
+            fn eq(&self, other: &Self) -> bool {
+                match (self, other) {
+                    (Self::__Ignore(_0, _1), Self::__Ignore(_0_other, _1_other)) => {
+                        true && _0 == _0_other && _1 == _1_other
+                    }
+                    (Self::create_kitty {}, Self::create_kitty {}) => true,
+                    (
+                        Self::set_price {
+                            kitty_id,
+                            new_price,
+                        },
+                        Self::set_price {
+                            kitty_id: _0,
+                            new_price: _1,
+                        },
+                    ) => true && kitty_id == _0 && new_price == _1,
+                    (
+                        Self::transfer { to, kitty_id },
+                        Self::transfer {
+                            to: _0,
+                            kitty_id: _1,
+                        },
+                    ) => true && to == _0 && kitty_id == _1,
+                    (
+                        Self::buy_kitty {
+                            kitty_id,
+                            bid_price,
+                        },
+                        Self::buy_kitty {
+                            kitty_id: _0,
+                            bid_price: _1,
+                        },
+                    ) => true && kitty_id == _0 && bid_price == _1,
+                    (
+                        Self::breed_kitty { parent1, parent2 },
+                        Self::breed_kitty {
+                            parent1: _0,
+                            parent2: _1,
+                        },
+                    ) => true && parent1 == _0 && parent2 == _1,
+                    (Self::__Ignore { .. }, Self::create_kitty { .. }) => false,
+                    (Self::__Ignore { .. }, Self::set_price { .. }) => false,
+                    (Self::__Ignore { .. }, Self::transfer { .. }) => false,
+                    (Self::__Ignore { .. }, Self::buy_kitty { .. }) => false,
+                    (Self::__Ignore { .. }, Self::breed_kitty { .. }) => false,
+                    (Self::create_kitty { .. }, Self::__Ignore { .. }) => false,
+                    (Self::create_kitty { .. }, Self::set_price { .. }) => false,
+                    (Self::create_kitty { .. }, Self::transfer { .. }) => false,
+                    (Self::create_kitty { .. }, Self::buy_kitty { .. }) => false,
+                    (Self::create_kitty { .. }, Self::breed_kitty { .. }) => false,
+                    (Self::set_price { .. }, Self::__Ignore { .. }) => false,
+                    (Self::set_price { .. }, Self::create_kitty { .. }) => false,
+                    (Self::set_price { .. }, Self::transfer { .. }) => false,
+                    (Self::set_price { .. }, Self::buy_kitty { .. }) => false,
+                    (Self::set_price { .. }, Self::breed_kitty { .. }) => false,
+                    (Self::transfer { .. }, Self::__Ignore { .. }) => false,
+                    (Self::transfer { .. }, Self::create_kitty { .. }) => false,
+                    (Self::transfer { .. }, Self::set_price { .. }) => false,
+                    (Self::transfer { .. }, Self::buy_kitty { .. }) => false,
+                    (Self::transfer { .. }, Self::breed_kitty { .. }) => false,
+                    (Self::buy_kitty { .. }, Self::__Ignore { .. }) => false,
+                    (Self::buy_kitty { .. }, Self::create_kitty { .. }) => false,
+                    (Self::buy_kitty { .. }, Self::set_price { .. }) => false,
+                    (Self::buy_kitty { .. }, Self::transfer { .. }) => false,
+                    (Self::buy_kitty { .. }, Self::breed_kitty { .. }) => false,
+                    (Self::breed_kitty { .. }, Self::__Ignore { .. }) => false,
+                    (Self::breed_kitty { .. }, Self::create_kitty { .. }) => false,
+                    (Self::breed_kitty { .. }, Self::set_price { .. }) => false,
+                    (Self::breed_kitty { .. }, Self::transfer { .. }) => false,
+                    (Self::breed_kitty { .. }, Self::buy_kitty { .. }) => false,
+                }
+            }
+        }
+    };
+    const _: () = {
+        #[allow(non_camel_case_types)]
+        impl<T: Config> ::codec::Encode for Call<T> {
+            fn encode_to<__CodecOutputEdqy: ::codec::Output + ?::core::marker::Sized>(
+                &self,
+                __codec_dest_edqy: &mut __CodecOutputEdqy,
+            ) {
+                match *self {
+                    Call::create_kitty {} => {
+                        __codec_dest_edqy.push_byte(0usize as ::core::primitive::u8);
+                    }
+                    Call::set_price {
+                        ref kitty_id,
+                        ref new_price,
+                    } => {
+                        __codec_dest_edqy.push_byte(1usize as ::core::primitive::u8);
+                        ::codec::Encode::encode_to(kitty_id, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(new_price, __codec_dest_edqy);
+                    }
+                    Call::transfer {
+                        ref to,
+                        ref kitty_id,
+                    } => {
+                        __codec_dest_edqy.push_byte(2usize as ::core::primitive::u8);
+                        ::codec::Encode::encode_to(to, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(kitty_id, __codec_dest_edqy);
+                    }
+                    Call::buy_kitty {
+                        ref kitty_id,
+                        ref bid_price,
+                    } => {
+                        __codec_dest_edqy.push_byte(3usize as ::core::primitive::u8);
+                        ::codec::Encode::encode_to(kitty_id, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(bid_price, __codec_dest_edqy);
+                    }
+                    Call::breed_kitty {
+                        ref parent1,
+                        ref parent2,
+                    } => {
+                        __codec_dest_edqy.push_byte(4usize as ::core::primitive::u8);
+                        ::codec::Encode::encode_to(parent1, __codec_dest_edqy);
+                        ::codec::Encode::encode_to(parent2, __codec_dest_edqy);
+                    }
+                    _ => (),
+                }
+            }
+        }
+        impl<T: Config> ::codec::EncodeLike for Call<T> {}
+    };
+    const _: () = {
+        #[allow(non_camel_case_types)]
+        impl<T: Config> ::codec::Decode for Call<T> {
+            fn decode<__CodecInputEdqy: ::codec::Input>(
+                __codec_input_edqy: &mut __CodecInputEdqy,
+            ) -> ::core::result::Result<Self, ::codec::Error> {
+                match __codec_input_edqy
+                    .read_byte()
+                    .map_err(|e| e.chain("Could not decode `Call`, failed to read variant byte"))?
+                {
+                    __codec_x_edqy if __codec_x_edqy == 0usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Call::<T>::create_kitty {})
+                    }
+                    __codec_x_edqy if __codec_x_edqy == 1usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Call::<T>::set_price {
+                            kitty_id: {
+                                let __codec_res_edqy =
+                                    <T::Hash as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Call::set_price::kitty_id`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            new_price: {
+                                let __codec_res_edqy =
+                                    <Option<BalanceOf<T>> as ::codec::Decode>::decode(
+                                        __codec_input_edqy,
+                                    );
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(e.chain(
+                                            "Could not decode `Call::set_price::new_price`",
+                                        ))
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                        })
+                    }
+                    __codec_x_edqy if __codec_x_edqy == 2usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Call::<T>::transfer {
+                            to: {
+                                let __codec_res_edqy =
+                                    <T::AccountId as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Call::transfer::to`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            kitty_id: {
+                                let __codec_res_edqy =
+                                    <T::Hash as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Call::transfer::kitty_id`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                        })
+                    }
+                    __codec_x_edqy if __codec_x_edqy == 3usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Call::<T>::buy_kitty {
+                            kitty_id: {
+                                let __codec_res_edqy =
+                                    <T::Hash as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(
+                                            e.chain("Could not decode `Call::buy_kitty::kitty_id`"),
+                                        )
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            bid_price: {
+                                let __codec_res_edqy =
+                                    <BalanceOf<T> as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(e.chain(
+                                            "Could not decode `Call::buy_kitty::bid_price`",
+                                        ))
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                        })
+                    }
+                    __codec_x_edqy if __codec_x_edqy == 4usize as ::core::primitive::u8 => {
+                        ::core::result::Result::Ok(Call::<T>::breed_kitty {
+                            parent1: {
+                                let __codec_res_edqy =
+                                    <T::Hash as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(e.chain(
+                                            "Could not decode `Call::breed_kitty::parent1`",
+                                        ))
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                            parent2: {
+                                let __codec_res_edqy =
+                                    <T::Hash as ::codec::Decode>::decode(__codec_input_edqy);
+                                match __codec_res_edqy {
+                                    ::core::result::Result::Err(e) => {
+                                        return ::core::result::Result::Err(e.chain(
+                                            "Could not decode `Call::breed_kitty::parent2`",
+                                        ))
+                                    }
+                                    ::core::result::Result::Ok(__codec_res_edqy) => {
+                                        __codec_res_edqy
+                                    }
+                                }
+                            },
+                        })
+                    }
+                    _ => ::core::result::Result::Err(<_ as ::core::convert::Into<_>>::into(
+                        "Could not decode `Call`, variant doesn\'t exist",
+                    )),
+                }
+            }
+        }
+    };
+    #[allow(non_upper_case_globals, unused_attributes, unused_qualifications)]
+    const _: () = {
+        impl<T: Config> ::scale_info::TypeInfo for Call<T>
+        where
+            frame_support::sp_std::marker::PhantomData<(T,)>: ::scale_info::TypeInfo + 'static,
+            T::Hash: ::scale_info::TypeInfo + 'static,
+            Option<BalanceOf<T>>: ::scale_info::TypeInfo + 'static,
+            T::AccountId: ::scale_info::TypeInfo + 'static,
+            T::Hash: ::scale_info::TypeInfo + 'static,
+            T::Hash: ::scale_info::TypeInfo + 'static,
+            BalanceOf<T>: ::scale_info::TypeInfo + 'static,
+            T::Hash: ::scale_info::TypeInfo + 'static,
+            T::Hash: ::scale_info::TypeInfo + 'static,
+            T: Config + 'static,
+        {
+            type Identity = Self;
+            fn type_info() -> ::scale_info::Type {
+                :: scale_info :: Type :: builder () . path (:: scale_info :: Path :: new ("Call" , "pallet_kitties::pallet")) . type_params (< [_] > :: into_vec (box [:: scale_info :: TypeParameter :: new ("T" , :: core :: option :: Option :: None)])) . docs_always (& ["Contains one variant per dispatchable that can be called by an extrinsic."]) . variant (:: scale_info :: build :: Variants :: new () . variant ("create_kitty" , | v | v . index (0usize as :: core :: primitive :: u8) . fields (:: scale_info :: build :: Fields :: named ()) . docs_always (& ["Create a new unique kitty." , "" , "The actual kitty creation is done in the `mint()` function."])) . variant ("set_price" , | v | v . index (1usize as :: core :: primitive :: u8) . fields (:: scale_info :: build :: Fields :: named () . field (| f | f . ty :: < T :: Hash > () . name ("kitty_id") . type_name ("T::Hash") . docs_always (& [])) . field (| f | f . ty :: < Option < BalanceOf < T > > > () . name ("new_price") . type_name ("Option<BalanceOf<T>>") . docs_always (& []))) . docs_always (& ["Set the price for a Kitty." , "" , "Updates Kitty price and updates storage."])) . variant ("transfer" , | v | v . index (2usize as :: core :: primitive :: u8) . fields (:: scale_info :: build :: Fields :: named () . field (| f | f . ty :: < T :: AccountId > () . name ("to") . type_name ("T::AccountId") . docs_always (& [])) . field (| f | f . ty :: < T :: Hash > () . name ("kitty_id") . type_name ("T::Hash") . docs_always (& []))) . docs_always (& ["Directly transfer a kitty to another recipient." , "" , "Any account that holds a kitty can send it to another Account. This will reset the asking" , "price of the kitty, marking it not for sale."])) . variant ("buy_kitty" , | v | v . index (3usize as :: core :: primitive :: u8) . fields (:: scale_info :: build :: Fields :: named () . field (| f | f . ty :: < T :: Hash > () . name ("kitty_id") . type_name ("T::Hash") . docs_always (& [])) . field (| f | f . ty :: < BalanceOf < T > > () . name ("bid_price") . type_name ("BalanceOf<T>") . docs_always (& []))) . docs_always (& ["Buy a saleable Kitty. The bid price provided from the buyer has to be equal or higher" , "than the ask price from the seller." , "" , "This will reset the asking price of the kitty, marking it not for sale." , "Marking this method `transactional` so when an error is returned, we ensure no storage is changed."])) . variant ("breed_kitty" , | v | v . index (4usize as :: core :: primitive :: u8) . fields (:: scale_info :: build :: Fields :: named () . field (| f | f . ty :: < T :: Hash > () . name ("parent1") . type_name ("T::Hash") . docs_always (& [])) . field (| f | f . ty :: < T :: Hash > () . name ("parent2") . type_name ("T::Hash") . docs_always (& []))) . docs_always (& ["Breed a Kitty." , "" , "Breed two kitties to create a new generation" , "of Kitties."])))
+            }
+        };
+    };
+    impl<T: Config> Call<T> {
+        ///Create a call with the variant `create_kitty`.
+        pub fn new_call_variant_create_kitty() -> Self {
+            Self::create_kitty {}
+        }
+        ///Create a call with the variant `set_price`.
+        pub fn new_call_variant_set_price(
+            kitty_id: T::Hash,
+            new_price: Option<BalanceOf<T>>,
+        ) -> Self {
+            Self::set_price {
+                kitty_id,
+                new_price,
+            }
+        }
+        ///Create a call with the variant `transfer`.
+        pub fn new_call_variant_transfer(to: T::AccountId, kitty_id: T::Hash) -> Self {
+            Self::transfer { to, kitty_id }
+        }
+        ///Create a call with the variant `buy_kitty`.
+        pub fn new_call_variant_buy_kitty(kitty_id: T::Hash, bid_price: BalanceOf<T>) -> Self {
+            Self::buy_kitty {
+                kitty_id,
+                bid_price,
+            }
+        }
+        ///Create a call with the variant `breed_kitty`.
+        pub fn new_call_variant_breed_kitty(parent1: T::Hash, parent2: T::Hash) -> Self {
+            Self::breed_kitty { parent1, parent2 }
+        }
+    }
+    impl<T: Config> frame_support::dispatch::GetDispatchInfo for Call<T> {
+        fn get_dispatch_info(&self) -> frame_support::dispatch::DispatchInfo {
+            match *self {
+                Self::create_kitty {} => {
+                    let __pallet_base_weight = 100;
+                    let __pallet_weight = <dyn frame_support::dispatch::WeighData<()>>::weigh_data(
+                        &__pallet_base_weight,
+                        (),
+                    );
+                    let __pallet_class =
+                        <dyn frame_support::dispatch::ClassifyDispatch<()>>::classify_dispatch(
+                            &__pallet_base_weight,
+                            (),
+                        );
+                    let __pallet_pays_fee = <dyn frame_support::dispatch::PaysFee<()>>::pays_fee(
+                        &__pallet_base_weight,
+                        (),
+                    );
+                    frame_support::dispatch::DispatchInfo {
+                        weight: __pallet_weight,
+                        class: __pallet_class,
+                        pays_fee: __pallet_pays_fee,
+                    }
+                }
+                Self::set_price {
+                    ref kitty_id,
+                    ref new_price,
+                } => {
+                    let __pallet_base_weight = 100;
+                    let __pallet_weight = <dyn frame_support::dispatch::WeighData<(
+                        &T::Hash,
+                        &Option<BalanceOf<T>>,
+                    )>>::weigh_data(
+                        &__pallet_base_weight, (kitty_id, new_price)
+                    );
+                    let __pallet_class = <dyn frame_support::dispatch::ClassifyDispatch<(
+                        &T::Hash,
+                        &Option<BalanceOf<T>>,
+                    )>>::classify_dispatch(
+                        &__pallet_base_weight, (kitty_id, new_price)
+                    );
+                    let __pallet_pays_fee = <dyn frame_support::dispatch::PaysFee<(
+                        &T::Hash,
+                        &Option<BalanceOf<T>>,
+                    )>>::pays_fee(
+                        &__pallet_base_weight, (kitty_id, new_price)
+                    );
+                    frame_support::dispatch::DispatchInfo {
+                        weight: __pallet_weight,
+                        class: __pallet_class,
+                        pays_fee: __pallet_pays_fee,
+                    }
+                }
+                Self::transfer {
+                    ref to,
+                    ref kitty_id,
+                } => {
+                    let __pallet_base_weight = 100;
+                    let __pallet_weight = <dyn frame_support::dispatch::WeighData<(
+                        &T::AccountId,
+                        &T::Hash,
+                    )>>::weigh_data(
+                        &__pallet_base_weight, (to, kitty_id)
+                    );
+                    let __pallet_class = <dyn frame_support::dispatch::ClassifyDispatch<(
+                        &T::AccountId,
+                        &T::Hash,
+                    )>>::classify_dispatch(
+                        &__pallet_base_weight, (to, kitty_id)
+                    );
+                    let __pallet_pays_fee = <dyn frame_support::dispatch::PaysFee<(
+                        &T::AccountId,
+                        &T::Hash,
+                    )>>::pays_fee(
+                        &__pallet_base_weight, (to, kitty_id)
+                    );
+                    frame_support::dispatch::DispatchInfo {
+                        weight: __pallet_weight,
+                        class: __pallet_class,
+                        pays_fee: __pallet_pays_fee,
+                    }
+                }
+                Self::buy_kitty {
+                    ref kitty_id,
+                    ref bid_price,
+                } => {
+                    let __pallet_base_weight = 100;
+                    let __pallet_weight = <dyn frame_support::dispatch::WeighData<(
+                        &T::Hash,
+                        &BalanceOf<T>,
+                    )>>::weigh_data(
+                        &__pallet_base_weight, (kitty_id, bid_price)
+                    );
+                    let __pallet_class = <dyn frame_support::dispatch::ClassifyDispatch<(
+                        &T::Hash,
+                        &BalanceOf<T>,
+                    )>>::classify_dispatch(
+                        &__pallet_base_weight, (kitty_id, bid_price)
+                    );
+                    let __pallet_pays_fee = <dyn frame_support::dispatch::PaysFee<(
+                        &T::Hash,
+                        &BalanceOf<T>,
+                    )>>::pays_fee(
+                        &__pallet_base_weight, (kitty_id, bid_price)
+                    );
+                    frame_support::dispatch::DispatchInfo {
+                        weight: __pallet_weight,
+                        class: __pallet_class,
+                        pays_fee: __pallet_pays_fee,
+                    }
+                }
+                Self::breed_kitty {
+                    ref parent1,
+                    ref parent2,
+                } => {
+                    let __pallet_base_weight = 100;
+                    let __pallet_weight =
+                        <dyn frame_support::dispatch::WeighData<(&T::Hash, &T::Hash)>>::weigh_data(
+                            &__pallet_base_weight,
+                            (parent1, parent2),
+                        );
+                    let __pallet_class = <dyn frame_support::dispatch::ClassifyDispatch<(
+                        &T::Hash,
+                        &T::Hash,
+                    )>>::classify_dispatch(
+                        &__pallet_base_weight, (parent1, parent2)
+                    );
+                    let __pallet_pays_fee =
+                        <dyn frame_support::dispatch::PaysFee<(&T::Hash, &T::Hash)>>::pays_fee(
+                            &__pallet_base_weight,
+                            (parent1, parent2),
+                        );
+                    frame_support::dispatch::DispatchInfo {
+                        weight: __pallet_weight,
+                        class: __pallet_class,
+                        pays_fee: __pallet_pays_fee,
+                    }
+                }
+                Self::__Ignore(_, _) => {
+                    ::core::panicking::panic_fmt(::core::fmt::Arguments::new_v1(
+                        &["internal error: entered unreachable code: "],
+                        &match (&"__Ignore cannot be used",) {
+                            _args => [::core::fmt::ArgumentV1::new(
+                                _args.0,
+                                ::core::fmt::Display::fmt,
+                            )],
+                        },
+                    ))
+                }
+            }
+        }
+    }
+    impl<T: Config> frame_support::dispatch::GetCallName for Call<T> {
+        fn get_call_name(&self) -> &'static str {
+            match *self {
+                Self::create_kitty { .. } => "create_kitty",
+                Self::set_price { .. } => "set_price",
+                Self::transfer { .. } => "transfer",
+                Self::buy_kitty { .. } => "buy_kitty",
+                Self::breed_kitty { .. } => "breed_kitty",
+                Self::__Ignore(_, _) => {
+                    ::core::panicking::panic_fmt(::core::fmt::Arguments::new_v1(
+                        &["internal error: entered unreachable code: "],
+                        &match (&"__PhantomItem cannot be used.",) {
+                            _args => [::core::fmt::ArgumentV1::new(
+                                _args.0,
+                                ::core::fmt::Display::fmt,
+                            )],
+                        },
+                    ))
+                }
+            }
+        }
+        fn get_call_names() -> &'static [&'static str] {
+            &[
+                "create_kitty",
+                "set_price",
+                "transfer",
+                "buy_kitty",
+                "breed_kitty",
+            ]
+        }
+    }
+    impl<T: Config> frame_support::traits::UnfilteredDispatchable for Call<T> {
+        type Origin = frame_system::pallet_prelude::OriginFor<T>;
+        fn dispatch_bypass_filter(
+            self,
+            origin: Self::Origin,
+        ) -> frame_support::dispatch::DispatchResultWithPostInfo {
+            match self {
+                Self::create_kitty {} => {
+                    let __within_span__ = {
+                        use ::tracing::__macro_support::Callsite as _;
+                        static CALLSITE: ::tracing::__macro_support::MacroCallsite = {
+                            use ::tracing::__macro_support::MacroCallsite;
+                            static META: ::tracing::Metadata<'static> = {
+                                ::tracing_core::metadata::Metadata::new(
+                                    "create_kitty",
+                                    "pallet_kitties::pallet",
+                                    ::tracing::Level::TRACE,
+                                    Some("pallets/kitties/src/lib.rs"),
+                                    Some(8u32),
+                                    Some("pallet_kitties::pallet"),
+                                    ::tracing_core::field::FieldSet::new(
+                                        &[],
+                                        ::tracing_core::callsite::Identifier(&CALLSITE),
+                                    ),
+                                    ::tracing::metadata::Kind::SPAN,
+                                )
+                            };
+                            MacroCallsite::new(&META)
+                        };
+                        let mut interest = ::tracing::subscriber::Interest::never();
+                        if ::tracing::Level::TRACE <= ::tracing::level_filters::STATIC_MAX_LEVEL
+                            && ::tracing::Level::TRACE
+                                <= ::tracing::level_filters::LevelFilter::current()
+                            && {
+                                interest = CALLSITE.interest();
+                                !interest.is_never()
+                            }
+                            && CALLSITE.is_enabled(interest)
+                        {
+                            let meta = CALLSITE.metadata();
+                            ::tracing::Span::new(meta, &{ meta.fields().value_set(&[]) })
+                        } else {
+                            let span = CALLSITE.disabled_span();
+                            {};
+                            span
+                        }
+                    };
+                    let __tracing_guard__ = __within_span__.enter();
+                    <Pallet<T>>::create_kitty(origin)
+                        .map(Into::into)
+                        .map_err(Into::into)
+                }
+                Self::set_price {
+                    kitty_id,
+                    new_price,
+                } => {
+                    let __within_span__ = {
+                        use ::tracing::__macro_support::Callsite as _;
+                        static CALLSITE: ::tracing::__macro_support::MacroCallsite = {
+                            use ::tracing::__macro_support::MacroCallsite;
+                            static META: ::tracing::Metadata<'static> = {
+                                ::tracing_core::metadata::Metadata::new(
+                                    "set_price",
+                                    "pallet_kitties::pallet",
+                                    ::tracing::Level::TRACE,
+                                    Some("pallets/kitties/src/lib.rs"),
+                                    Some(8u32),
+                                    Some("pallet_kitties::pallet"),
+                                    ::tracing_core::field::FieldSet::new(
+                                        &[],
+                                        ::tracing_core::callsite::Identifier(&CALLSITE),
+                                    ),
+                                    ::tracing::metadata::Kind::SPAN,
+                                )
+                            };
+                            MacroCallsite::new(&META)
+                        };
+                        let mut interest = ::tracing::subscriber::Interest::never();
+                        if ::tracing::Level::TRACE <= ::tracing::level_filters::STATIC_MAX_LEVEL
+                            && ::tracing::Level::TRACE
+                                <= ::tracing::level_filters::LevelFilter::current()
+                            && {
+                                interest = CALLSITE.interest();
+                                !interest.is_never()
+                            }
+                            && CALLSITE.is_enabled(interest)
+                        {
+                            let meta = CALLSITE.metadata();
+                            ::tracing::Span::new(meta, &{ meta.fields().value_set(&[]) })
+                        } else {
+                            let span = CALLSITE.disabled_span();
+                            {};
+                            span
+                        }
+                    };
+                    let __tracing_guard__ = __within_span__.enter();
+                    <Pallet<T>>::set_price(origin, kitty_id, new_price)
+                        .map(Into::into)
+                        .map_err(Into::into)
+                }
+                Self::transfer { to, kitty_id } => {
+                    let __within_span__ = {
+                        use ::tracing::__macro_support::Callsite as _;
+                        static CALLSITE: ::tracing::__macro_support::MacroCallsite = {
+                            use ::tracing::__macro_support::MacroCallsite;
+                            static META: ::tracing::Metadata<'static> = {
+                                ::tracing_core::metadata::Metadata::new(
+                                    "transfer",
+                                    "pallet_kitties::pallet",
+                                    ::tracing::Level::TRACE,
+                                    Some("pallets/kitties/src/lib.rs"),
+                                    Some(8u32),
+                                    Some("pallet_kitties::pallet"),
+                                    ::tracing_core::field::FieldSet::new(
+                                        &[],
+                                        ::tracing_core::callsite::Identifier(&CALLSITE),
+                                    ),
+                                    ::tracing::metadata::Kind::SPAN,
+                                )
+                            };
+                            MacroCallsite::new(&META)
+                        };
+                        let mut interest = ::tracing::subscriber::Interest::never();
+                        if ::tracing::Level::TRACE <= ::tracing::level_filters::STATIC_MAX_LEVEL
+                            && ::tracing::Level::TRACE
+                                <= ::tracing::level_filters::LevelFilter::current()
+                            && {
+                                interest = CALLSITE.interest();
+                                !interest.is_never()
+                            }
+                            && CALLSITE.is_enabled(interest)
+                        {
+                            let meta = CALLSITE.metadata();
+                            ::tracing::Span::new(meta, &{ meta.fields().value_set(&[]) })
+                        } else {
+                            let span = CALLSITE.disabled_span();
+                            {};
+                            span
+                        }
+                    };
+                    let __tracing_guard__ = __within_span__.enter();
+                    <Pallet<T>>::transfer(origin, to, kitty_id)
+                        .map(Into::into)
+                        .map_err(Into::into)
+                }
+                Self::buy_kitty {
+                    kitty_id,
+                    bid_price,
+                } => {
+                    let __within_span__ = {
+                        use ::tracing::__macro_support::Callsite as _;
+                        static CALLSITE: ::tracing::__macro_support::MacroCallsite = {
+                            use ::tracing::__macro_support::MacroCallsite;
+                            static META: ::tracing::Metadata<'static> = {
+                                ::tracing_core::metadata::Metadata::new(
+                                    "buy_kitty",
+                                    "pallet_kitties::pallet",
+                                    ::tracing::Level::TRACE,
+                                    Some("pallets/kitties/src/lib.rs"),
+                                    Some(8u32),
+                                    Some("pallet_kitties::pallet"),
+                                    ::tracing_core::field::FieldSet::new(
+                                        &[],
+                                        ::tracing_core::callsite::Identifier(&CALLSITE),
+                                    ),
+                                    ::tracing::metadata::Kind::SPAN,
+                                )
+                            };
+                            MacroCallsite::new(&META)
+                        };
+                        let mut interest = ::tracing::subscriber::Interest::never();
+                        if ::tracing::Level::TRACE <= ::tracing::level_filters::STATIC_MAX_LEVEL
+                            && ::tracing::Level::TRACE
+                                <= ::tracing::level_filters::LevelFilter::current()
+                            && {
+                                interest = CALLSITE.interest();
+                                !interest.is_never()
+                            }
+                            && CALLSITE.is_enabled(interest)
+                        {
+                            let meta = CALLSITE.metadata();
+                            ::tracing::Span::new(meta, &{ meta.fields().value_set(&[]) })
+                        } else {
+                            let span = CALLSITE.disabled_span();
+                            {};
+                            span
+                        }
+                    };
+                    let __tracing_guard__ = __within_span__.enter();
+                    <Pallet<T>>::buy_kitty(origin, kitty_id, bid_price)
+                        .map(Into::into)
+                        .map_err(Into::into)
+                }
+                Self::breed_kitty { parent1, parent2 } => {
+                    let __within_span__ = {
+                        use ::tracing::__macro_support::Callsite as _;
+                        static CALLSITE: ::tracing::__macro_support::MacroCallsite = {
+                            use ::tracing::__macro_support::MacroCallsite;
+                            static META: ::tracing::Metadata<'static> = {
+                                ::tracing_core::metadata::Metadata::new(
+                                    "breed_kitty",
+                                    "pallet_kitties::pallet",
+                                    ::tracing::Level::TRACE,
+                                    Some("pallets/kitties/src/lib.rs"),
+                                    Some(8u32),
+                                    Some("pallet_kitties::pallet"),
+                                    ::tracing_core::field::FieldSet::new(
+                                        &[],
+                                        ::tracing_core::callsite::Identifier(&CALLSITE),
+                                    ),
+                                    ::tracing::metadata::Kind::SPAN,
+                                )
+                            };
+                            MacroCallsite::new(&META)
+                        };
+                        let mut interest = ::tracing::subscriber::Interest::never();
+                        if ::tracing::Level::TRACE <= ::tracing::level_filters::STATIC_MAX_LEVEL
+                            && ::tracing::Level::TRACE
+                                <= ::tracing::level_filters::LevelFilter::current()
+                            && {
+                                interest = CALLSITE.interest();
+                                !interest.is_never()
+                            }
+                            && CALLSITE.is_enabled(interest)
+                        {
+                            let meta = CALLSITE.metadata();
+                            ::tracing::Span::new(meta, &{ meta.fields().value_set(&[]) })
+                        } else {
+                            let span = CALLSITE.disabled_span();
+                            {};
+                            span
+                        }
+                    };
+                    let __tracing_guard__ = __within_span__.enter();
+                    <Pallet<T>>::breed_kitty(origin, parent1, parent2)
+                        .map(Into::into)
+                        .map_err(Into::into)
+                }
+                Self::__Ignore(_, _) => {
+                    let _ = origin;
+                    {
+                        {
+                            ::core::panicking::panic_fmt(::core::fmt::Arguments::new_v1(
+                                &["internal error: entered unreachable code: "],
+                                &match (&"__PhantomItem cannot be used.",) {
+                                    _args => [::core::fmt::ArgumentV1::new(
+                                        _args.0,
+                                        ::core::fmt::Display::fmt,
+                                    )],
+                                },
+                            ))
+                        }
+                    };
+                }
+            }
+        }
+    }
+    impl<T: Config> frame_support::dispatch::Callable<T> for Pallet<T> {
+        type Call = Call<T>;
+    }
+    impl<T: Config> Pallet<T> {
+        #[doc(hidden)]
+        pub fn call_functions() -> frame_support::metadata::PalletCallMetadata {
+            frame_support::scale_info::meta_type::<Call<T>>().into()
+        }
+    }
+    impl<T: Config> frame_support::sp_std::fmt::Debug for Error<T> {
+        fn fmt(
+            &self,
+            f: &mut frame_support::sp_std::fmt::Formatter<'_>,
+        ) -> frame_support::sp_std::fmt::Result {
+            f.write_str(self.as_str())
+        }
+    }
+    impl<T: Config> Error<T> {
+        pub fn as_u8(&self) -> u8 {
+            match &self {
+                Self::__Ignore(_, _) => {
+                    ::core::panicking::panic_fmt(::core::fmt::Arguments::new_v1(
+                        &["internal error: entered unreachable code: "],
+                        &match (&"`__Ignore` can never be constructed",) {
+                            _args => [::core::fmt::ArgumentV1::new(
+                                _args.0,
+                                ::core::fmt::Display::fmt,
+                            )],
+                        },
+                    ))
+                }
+                Self::KittyCntOverflow => 0usize as u8,
+                Self::ExceedMaxKittyOwned => 1usize as u8,
+                Self::BuyerIsKittyOwner => 2usize as u8,
+                Self::TransferToSelf => 3usize as u8,
+                Self::KittyNotExist => 4usize as u8,
+                Self::NotKittyOwner => 5usize as u8,
+                Self::KittyNotForSale => 6usize as u8,
+                Self::KittyBidPriceTooLow => 7usize as u8,
+                Self::NotEnoughBalance => 8usize as u8,
+            }
+        }
+        pub fn as_str(&self) -> &'static str {
+            match &self {
+                Self::__Ignore(_, _) => {
+                    ::core::panicking::panic_fmt(::core::fmt::Arguments::new_v1(
+                        &["internal error: entered unreachable code: "],
+                        &match (&"`__Ignore` can never be constructed",) {
+                            _args => [::core::fmt::ArgumentV1::new(
+                                _args.0,
+                                ::core::fmt::Display::fmt,
+                            )],
+                        },
+                    ))
+                }
+                Self::KittyCntOverflow => "KittyCntOverflow",
+                Self::ExceedMaxKittyOwned => "ExceedMaxKittyOwned",
+                Self::BuyerIsKittyOwner => "BuyerIsKittyOwner",
+                Self::TransferToSelf => "TransferToSelf",
+                Self::KittyNotExist => "KittyNotExist",
+                Self::NotKittyOwner => "NotKittyOwner",
+                Self::KittyNotForSale => "KittyNotForSale",
+                Self::KittyBidPriceTooLow => "KittyBidPriceTooLow",
+                Self::NotEnoughBalance => "NotEnoughBalance",
+            }
+        }
+    }
+    impl<T: Config> From<Error<T>> for &'static str {
+        fn from(err: Error<T>) -> &'static str {
+            err.as_str()
+        }
+    }
+    impl<T: Config> From<Error<T>> for frame_support::sp_runtime::DispatchError {
+        fn from(err: Error<T>) -> Self {
+            let index = < < T as frame_system :: Config > :: PalletInfo as frame_support :: traits :: PalletInfo > :: index :: < Pallet < T > > () . expect ("Every active module has an index in the runtime; qed") as u8 ;
+            frame_support::sp_runtime::DispatchError::Module {
+                index,
+                error: err.as_u8(),
+                message: Some(err.as_str()),
+            }
+        }
+    }
+    #[doc(hidden)]
+    pub mod __substrate_event_check {
+        #[doc(hidden)]
+        pub use __is_event_part_defined_1 as is_event_part_defined;
+    }
+    impl<T: Config> Pallet<T> {
+        pub(super) fn deposit_event(event: Event<T>) {
+            let event = <<T as Config>::Event as From<Event<T>>>::from(event);
+            let event =
+                <<T as Config>::Event as Into<<T as frame_system::Config>::Event>>::into(event);
+            <frame_system::Pallet<T>>::deposit_event(event)
+        }
+    }
+    impl<T: Config> From<Event<T>> for () {
+        fn from(_: Event<T>) {}
+    }
+    impl<T: Config> Pallet<T> {
+        #[doc(hidden)]
+        pub fn storage_metadata() -> frame_support::metadata::PalletStorageMetadata {
+            frame_support :: metadata :: PalletStorageMetadata { prefix : < < T as frame_system :: Config > :: PalletInfo as frame_support :: traits :: PalletInfo > :: name :: < Pallet < T > > () . expect ("Every active pallet has a name in the runtime; qed") , entries : { # [allow (unused_mut)] let mut entries = :: alloc :: vec :: Vec :: new () ; { < KittyCnt < T > as frame_support :: storage :: StorageEntryMetadataBuilder > :: build_metadata (< [_] > :: into_vec (box [" Keeps track of the number of Kitties in existence."]) , & mut entries) ; } { < Kitties < T > as frame_support :: storage :: StorageEntryMetadataBuilder > :: build_metadata (< [_] > :: into_vec (box [" Stores a Kitty\'s unique traits, owner and price."]) , & mut entries) ; } { < KittiesOwned < T > as frame_support :: storage :: StorageEntryMetadataBuilder > :: build_metadata (< [_] > :: into_vec (box [" Keeps track of what accounts own what Kitty."]) , & mut entries) ; } entries } , }
+        }
+    }
+    impl<T: Config> Pallet<T> {
+        /// Keeps track of the number of Kitties in existence.
+        pub fn kitty_cnt() -> u64 {
+            <KittyCnt<T> as frame_support::storage::StorageValue<u64>>::get()
+        }
+    }
+    impl<T: Config> Pallet<T> {
+        /// Stores a Kitty's unique traits, owner and price.
+        pub fn kitties<KArg>(k: KArg) -> Option<Kitty<T>>
+        where
+            KArg: frame_support::codec::EncodeLike<T::Hash>,
+        {
+            <Kitties<T> as frame_support::storage::StorageMap<T::Hash, Kitty<T>>>::get(k)
+        }
+    }
+    impl<T: Config> Pallet<T> {
+        /// Keeps track of what accounts own what Kitty.
+        pub fn kitties_owned<KArg>(k: KArg) -> BoundedVec<T::Hash, T::MaxKittyOwned>
+        where
+            KArg: frame_support::codec::EncodeLike<T::AccountId>,
+        {
+            <KittiesOwned<T> as frame_support::storage::StorageMap<
+                T::AccountId,
+                BoundedVec<T::Hash, T::MaxKittyOwned>,
+            >>::get(k)
+        }
+    }
+    pub(super) struct _GeneratedPrefixForStorageKittyCnt<T>(core::marker::PhantomData<(T,)>);
+    impl<T: Config> frame_support::traits::StorageInstance for _GeneratedPrefixForStorageKittyCnt<T> {
+        fn pallet_prefix() -> &'static str {
+            <<T as frame_system::Config>::PalletInfo as frame_support::traits::PalletInfo>::name::<
+                Pallet<T>,
+            >()
+            .expect("Every active pallet has a name in the runtime; qed")
+        }
+        const STORAGE_PREFIX: &'static str = "KittyCnt";
+    }
+    pub(super) struct _GeneratedPrefixForStorageKitties<T>(core::marker::PhantomData<(T,)>);
+    impl<T: Config> frame_support::traits::StorageInstance for _GeneratedPrefixForStorageKitties<T> {
+        fn pallet_prefix() -> &'static str {
+            <<T as frame_system::Config>::PalletInfo as frame_support::traits::PalletInfo>::name::<
+                Pallet<T>,
+            >()
+            .expect("Every active pallet has a name in the runtime; qed")
+        }
+        const STORAGE_PREFIX: &'static str = "Kitties";
+    }
+    pub(super) struct _GeneratedPrefixForStorageKittiesOwned<T>(core::marker::PhantomData<(T,)>);
+    impl<T: Config> frame_support::traits::StorageInstance
+        for _GeneratedPrefixForStorageKittiesOwned<T>
+    {
+        fn pallet_prefix() -> &'static str {
+            <<T as frame_system::Config>::PalletInfo as frame_support::traits::PalletInfo>::name::<
+                Pallet<T>,
+            >()
+            .expect("Every active pallet has a name in the runtime; qed")
+        }
+        const STORAGE_PREFIX: &'static str = "KittiesOwned";
+    }
+    #[doc(hidden)]
+    pub mod __substrate_inherent_check {
+        #[doc(hidden)]
+        pub use __is_inherent_part_defined_2 as is_inherent_part_defined;
+    }
+    /// Hidden instance generated to be internally used when module is used without
+    /// instance.
+    #[doc(hidden)]
+    pub type __InherentHiddenInstance = ();
+    pub(super) trait Store {
+        type KittyCnt;
+        type Kitties;
+        type KittiesOwned;
+    }
+    impl<T: Config> Store for Pallet<T> {
+        type KittyCnt = KittyCnt<T>;
+        type Kitties = Kitties<T>;
+        type KittiesOwned = KittiesOwned<T>;
+    }
+    impl<T: Config> frame_support::traits::OnFinalize<<T as frame_system::Config>::BlockNumber>
+        for Pallet<T>
+    {
+        fn on_finalize(n: <T as frame_system::Config>::BlockNumber) {
+            let __within_span__ = {
+                use ::tracing::__macro_support::Callsite as _;
+                static CALLSITE: ::tracing::__macro_support::MacroCallsite = {
+                    use ::tracing::__macro_support::MacroCallsite;
+                    static META: ::tracing::Metadata<'static> = {
+                        ::tracing_core::metadata::Metadata::new(
+                            "on_finalize",
+                            "pallet_kitties::pallet",
+                            ::tracing::Level::TRACE,
+                            Some("pallets/kitties/src/lib.rs"),
+                            Some(8u32),
+                            Some("pallet_kitties::pallet"),
+                            ::tracing_core::field::FieldSet::new(
+                                &[],
+                                ::tracing_core::callsite::Identifier(&CALLSITE),
+                            ),
+                            ::tracing::metadata::Kind::SPAN,
+                        )
+                    };
+                    MacroCallsite::new(&META)
+                };
+                let mut interest = ::tracing::subscriber::Interest::never();
+                if ::tracing::Level::TRACE <= ::tracing::level_filters::STATIC_MAX_LEVEL
+                    && ::tracing::Level::TRACE <= ::tracing::level_filters::LevelFilter::current()
+                    && {
+                        interest = CALLSITE.interest();
+                        !interest.is_never()
+                    }
+                    && CALLSITE.is_enabled(interest)
+                {
+                    let meta = CALLSITE.metadata();
+                    ::tracing::Span::new(meta, &{ meta.fields().value_set(&[]) })
+                } else {
+                    let span = CALLSITE.disabled_span();
+                    {};
+                    span
+                }
+            };
+            let __tracing_guard__ = __within_span__.enter();
+            < Self as frame_support :: traits :: Hooks < < T as frame_system :: Config > :: BlockNumber > > :: on_finalize (n)
+        }
+    }
+    impl<T: Config> frame_support::traits::OnIdle<<T as frame_system::Config>::BlockNumber>
+        for Pallet<T>
+    {
+        fn on_idle(
+            n: <T as frame_system::Config>::BlockNumber,
+            remaining_weight: frame_support::weights::Weight,
+        ) -> frame_support::weights::Weight {
+            < Self as frame_support :: traits :: Hooks < < T as frame_system :: Config > :: BlockNumber > > :: on_idle (n , remaining_weight)
+        }
+    }
+    impl<T: Config> frame_support::traits::OnInitialize<<T as frame_system::Config>::BlockNumber>
+        for Pallet<T>
+    {
+        fn on_initialize(
+            n: <T as frame_system::Config>::BlockNumber,
+        ) -> frame_support::weights::Weight {
+            let __within_span__ = {
+                use ::tracing::__macro_support::Callsite as _;
+                static CALLSITE: ::tracing::__macro_support::MacroCallsite = {
+                    use ::tracing::__macro_support::MacroCallsite;
+                    static META: ::tracing::Metadata<'static> = {
+                        ::tracing_core::metadata::Metadata::new(
+                            "on_initialize",
+                            "pallet_kitties::pallet",
+                            ::tracing::Level::TRACE,
+                            Some("pallets/kitties/src/lib.rs"),
+                            Some(8u32),
+                            Some("pallet_kitties::pallet"),
+                            ::tracing_core::field::FieldSet::new(
+                                &[],
+                                ::tracing_core::callsite::Identifier(&CALLSITE),
+                            ),
+                            ::tracing::metadata::Kind::SPAN,
+                        )
+                    };
+                    MacroCallsite::new(&META)
+                };
+                let mut interest = ::tracing::subscriber::Interest::never();
+                if ::tracing::Level::TRACE <= ::tracing::level_filters::STATIC_MAX_LEVEL
+                    && ::tracing::Level::TRACE <= ::tracing::level_filters::LevelFilter::current()
+                    && {
+                        interest = CALLSITE.interest();
+                        !interest.is_never()
+                    }
+                    && CALLSITE.is_enabled(interest)
+                {
+                    let meta = CALLSITE.metadata();
+                    ::tracing::Span::new(meta, &{ meta.fields().value_set(&[]) })
+                } else {
+                    let span = CALLSITE.disabled_span();
+                    {};
+                    span
+                }
+            };
+            let __tracing_guard__ = __within_span__.enter();
+            < Self as frame_support :: traits :: Hooks < < T as frame_system :: Config > :: BlockNumber > > :: on_initialize (n)
+        }
+    }
+    impl<T: Config> frame_support::traits::OnRuntimeUpgrade for Pallet<T> {
+        fn on_runtime_upgrade() -> frame_support::weights::Weight {
+            let __within_span__ = {
+                use ::tracing::__macro_support::Callsite as _;
+                static CALLSITE: ::tracing::__macro_support::MacroCallsite = {
+                    use ::tracing::__macro_support::MacroCallsite;
+                    static META: ::tracing::Metadata<'static> = {
+                        ::tracing_core::metadata::Metadata::new(
+                            "on_runtime_update",
+                            "pallet_kitties::pallet",
+                            ::tracing::Level::TRACE,
+                            Some("pallets/kitties/src/lib.rs"),
+                            Some(8u32),
+                            Some("pallet_kitties::pallet"),
+                            ::tracing_core::field::FieldSet::new(
+                                &[],
+                                ::tracing_core::callsite::Identifier(&CALLSITE),
+                            ),
+                            ::tracing::metadata::Kind::SPAN,
+                        )
+                    };
+                    MacroCallsite::new(&META)
+                };
+                let mut interest = ::tracing::subscriber::Interest::never();
+                if ::tracing::Level::TRACE <= ::tracing::level_filters::STATIC_MAX_LEVEL
+                    && ::tracing::Level::TRACE <= ::tracing::level_filters::LevelFilter::current()
+                    && {
+                        interest = CALLSITE.interest();
+                        !interest.is_never()
+                    }
+                    && CALLSITE.is_enabled(interest)
+                {
+                    let meta = CALLSITE.metadata();
+                    ::tracing::Span::new(meta, &{ meta.fields().value_set(&[]) })
+                } else {
+                    let span = CALLSITE.disabled_span();
+                    {};
+                    span
+                }
+            };
+            let __tracing_guard__ = __within_span__.enter();
+            let pallet_name = < < T as frame_system :: Config > :: PalletInfo as frame_support :: traits :: PalletInfo > :: name :: < Self > () . unwrap_or ("<unknown pallet name>") ;
+            {
+                let lvl = ::log::Level::Info;
+                if lvl <= ::log::STATIC_MAX_LEVEL && lvl <= ::log::max_level() {
+                    ::log::__private_api_log(
+                        ::core::fmt::Arguments::new_v1(
+                            &["\u{2705} no migration for "],
+                            &match (&pallet_name,) {
+                                _args => [::core::fmt::ArgumentV1::new(
+                                    _args.0,
+                                    ::core::fmt::Display::fmt,
+                                )],
+                            },
+                        ),
+                        lvl,
+                        &(
+                            frame_support::LOG_TARGET,
+                            "pallet_kitties::pallet",
+                            "pallets/kitties/src/lib.rs",
+                            8u32,
+                        ),
+                    );
+                }
+            };
+            < Self as frame_support :: traits :: Hooks < < T as frame_system :: Config > :: BlockNumber > > :: on_runtime_upgrade ()
+        }
+    }
+    impl<T: Config> frame_support::traits::OffchainWorker<<T as frame_system::Config>::BlockNumber>
+        for Pallet<T>
+    {
+        fn offchain_worker(n: <T as frame_system::Config>::BlockNumber) {
+            < Self as frame_support :: traits :: Hooks < < T as frame_system :: Config > :: BlockNumber > > :: offchain_worker (n)
+        }
+    }
+    impl<T: Config> frame_support::traits::IntegrityTest for Pallet<T> {
+        fn integrity_test() {
+            < Self as frame_support :: traits :: Hooks < < T as frame_system :: Config > :: BlockNumber > > :: integrity_test ()
+        }
+    }
+    #[cfg(feature = "std")]
+    impl<T: Config> frame_support::sp_runtime::BuildModuleGenesisStorage<T, ()> for GenesisConfig<T> {
+        fn build_module_genesis_storage(
+            &self,
+            storage: &mut frame_support::sp_runtime::Storage,
+        ) -> std::result::Result<(), std::string::String> {
+            frame_support::BasicExternalities::execute_with_storage(storage, || {
+                <Self as frame_support::traits::GenesisBuild<T>>::build(self);
+                Ok(())
+            })
+        }
+    }
+    #[doc(hidden)]
+    pub mod __substrate_genesis_config_check {
+        #[doc(hidden)]
+        pub use __is_genesis_config_defined_3 as is_genesis_config_defined;
+        #[doc(hidden)]
+        pub use __is_std_macro_defined_for_genesis_3 as is_std_enabled_for_genesis;
+    }
+    #[doc(hidden)]
+    pub mod __substrate_origin_check {
+        #[doc(hidden)]
+        pub use __is_origin_part_defined_4 as is_origin_part_defined;
+    }
+    #[doc(hidden)]
+    pub mod __substrate_validate_unsigned_check {
+        #[doc(hidden)]
+        pub use __is_validate_unsigned_part_defined_5 as is_validate_unsigned_part_defined;
+    }
+}
+lizhengda@lizhengdadeMacBook-Pro src % 
